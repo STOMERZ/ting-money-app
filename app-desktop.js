@@ -1794,6 +1794,7 @@ loadConfig().then(() => {
             }
         });
         // Delay slightly to ensure Supabase lib loads
+        setTimeout(() => SupabaseService.init(), 1000);
     });
 
 });
