@@ -21,7 +21,9 @@ let appConfig = {
     supabaseUrl: 'https://gvxgqkqvtlgkehceyidi.supabase.co',
     supabaseKey: 'sb_publishable_Opf4rYZYz1qEbwAxHBTB1Q_2RUdGDxM',
     sheetUrl: 'https://script.google.com/macros/s/AKfycbylTV-a9oQ8QDvnxdnMGffjCkTqUGt8X0BGE1dEcp12r0UarlVgCdBOssc46ZRPxwuY/exec',
-    sheetId: '1ukjvu-SGAPhtqk0IydRAa6BIs14Fumq3kpUiHXt2uYY'
+    sheetUrl: 'https://script.google.com/macros/s/AKfycbylTV-a9oQ8QDvnxdnMGffjCkTqUGt8X0BGE1dEcp12r0UarlVgCdBOssc46ZRPxwuY/exec',
+    sheetId: '1ukjvu-SGAPhtqk0IydRAa6BIs14Fumq3kpUiHXt2uYY',
+    defaultPin: '0990' // 🔐 Hardcoded PIN
 };
 
 // โหลด config จากไฟล์
@@ -1841,12 +1843,21 @@ let isSettingPin = false;
 let tempPin = '';
 
 // Check Lock on Startup
+// Check Lock on Startup
 document.addEventListener('DOMContentLoaded', () => {
+    // Always lock screen on startup
+    showLockScreen();
+    // Hide PIN settings since it's hardcoded
+    /*
     const savedPin = localStorage.getItem('ting_lock_pin');
     if (savedPin) {
         showLockScreen();
     }
     updatePinButtonUI();
+    */
+    // Update UI to show locked status
+    const dBtn = document.getElementById('d-pin-btn');
+    if (dBtn) { dBtn.disabled = true; dBtn.textContent = '🔒 ล็อคถาวร (0990)'; }
 });
 
 function showLockScreen() {
@@ -1902,54 +1913,63 @@ function updatePinDots() {
 }
 
 function processPin() {
+    // Check against Hardcoded PIN
+    const systemPin = appConfig.defaultPin || '0990';
+
+    if (currentPin === systemPin) {
+        hideLockScreen();
+        // showToast('ยินดีต้อนรับกลับ! 💖', 'success'); 
+    } else {
+        // Wrong PIN
+        showToast('รหัสผ่านไม่ถูกต้อง ❌', 'error');
+
+        // Shake animation
+        const dots = document.querySelector('.pin-display');
+        dots.classList.add('shake');
+        setTimeout(() => dots.classList.remove('shake'), 400);
+
+        // Reset
+        currentPin = '';
+        setTimeout(updatePinDots, 200);
+    }
+}
+/*
+function processPin_Old() {
     const savedPin = localStorage.getItem('ting_lock_pin');
 
     if (isSettingPin) {
         if (!tempPin) {
             // First entry of new PIN
             tempPin = currentPin;
+            document.querySelector('.lock-content p').textContent = 'ยืนยันรหัสผ่านอีกครั้ง';
             currentPin = '';
             updatePinDots();
-            showToast('ยืนยันรหัสผ่านอีกครั้ง 🔒');
-            document.querySelector('.lock-content p').textContent = 'ยืนยันรหัสผ่านอีกครั้ง';
         } else {
-            // Confirm entry
+            // Confirm PIN
             if (currentPin === tempPin) {
                 localStorage.setItem('ting_lock_pin', currentPin);
-                showToast('ตั้งรหัสผ่านสำเร็จ! 🎉', 'success');
                 isSettingPin = false;
                 tempPin = '';
                 hideLockScreen();
                 updatePinButtonUI();
+                showToast('ตั้งรหัสผ่านเรียบร้อย ✅');
             } else {
-                showToast('รหัสผ่านไม่ตรงกัน ลองใหม่ ❌', 'error');
-                currentPin = '';
+                showToast('รหัสผ่านไม่ตรงกัน กรุณาลองใหม่ ❌', 'error');
                 tempPin = '';
-                updatePinDots();
+                currentPin = '';
+                isSettingPin = false; // Reset to start
                 document.querySelector('.lock-content p').textContent = 'ตั้งรหัสผ่านใหม่ 4 หลัก';
+                updatePinDots();
             }
         }
     } else {
-        // Normal Unlock
+        // Unlock
         if (currentPin === savedPin) {
-            // Success
             hideLockScreen();
-            showToast('ยินดีต้อนรับกลับ! 🎀');
-        } else {
-            // Fail
-            showToast('รหัสผ่านผิด ❌', 'error');
-            currentPin = '';
-            updatePinDots();
-
-            // Shake effect
-            const dots = document.getElementById('pin-dots');
-            dots.style.transform = 'translateX(10px)';
-            setTimeout(() => dots.style.transform = 'translateX(-10px)', 50);
-            setTimeout(() => dots.style.transform = 'translateX(10px)', 100);
-            setTimeout(() => dots.style.transform = 'translateX(0)', 150);
-        }
+    }
     }
 }
+*/
 
 function togglePinSetup() {
     const savedPin = localStorage.getItem('ting_lock_pin');
