@@ -2465,6 +2465,8 @@
                             <span class="status-badge disconnected" id="d-sb-status">ยังไม่เชื่อมต่อ</span>
                         </div>
                         <button class="btn btn-primary" onclick="initSupabase()">🔗 เชื่อมต่อ Supabase</button>
+                        <button class="btn btn-secondary" onclick="SupabaseService.fetchTransactions()"
+                            style="margin-top: 0.5rem; width: 100%;">🔄 ดึงข้อมูลจาก Cloud</button>
                     </div>
 
                     <div class="card settings-section">
@@ -2857,6 +2859,8 @@
 
                 <button class="btn btn-primary" style="width: 100%; background: #3ecf8e; border: none;"
                     onclick="initSupabase()">🔗 เชื่อมต่อ Supabase</button>
+                <button class="btn btn-secondary" style="width: 100%; margin-top: 0.5rem;"
+                    onclick="SupabaseService.fetchTransactions()">🔄 ดึงข้อมูลจาก Cloud</button>
             </div>
 
             <div class="m-card">

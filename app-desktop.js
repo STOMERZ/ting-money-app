@@ -1161,8 +1161,16 @@ document.querySelectorAll('[data-type]').forEach(btn => {
 
 // Save transaction
 // Save transaction
+// Lock flag to prevent double submission
+let isSavingTransaction = false;
+
 async function saveTransaction() {
-    // Determine which form (desktop or mobile) is active/has data
+    if (isSavingTransaction) return;
+
+    // Select ALL save buttons (Desktop & Mobile)
+    const saveBtns = document.querySelectorAll('button[onclick="saveTransaction()"]');
+
+    // 1. Gather Data
     const dAmount = parseFloat(document.getElementById('d-amount').value);
     const mAmount = parseFloat(document.getElementById('m-amount').value);
     const amount = dAmount || mAmount;
@@ -1172,85 +1180,98 @@ async function saveTransaction() {
         return;
     }
 
-    const date = document.getElementById('d-date').value || document.getElementById('m-date').value || today();
-    const sender = document.getElementById('d-sender').value || document.getElementById('m-sender').value;
-    const receiver = document.getElementById('d-receiver').value || document.getElementById('m-receiver').value;
-    const bank = document.getElementById('d-bank').value || document.getElementById('m-bank').value;
-    const note = document.getElementById('d-note').value || document.getElementById('m-note').value;
-    const shop = document.getElementById('d-shop-select').value || document.getElementById('m-shop-select').value;
+    // Lock UI immediately
+    isSavingTransaction = true;
+    saveBtns.forEach(btn => {
+        btn.disabled = true;
+        btn.dataset.orgText = btn.innerHTML;
+        btn.innerHTML = '⏳ กำลังบันทึก...';
+    });
 
-    // New fields
-    const items = document.getElementById('d-items').value || document.getElementById('m-items').value;
-    const shipping = parseFloat(document.getElementById('d-shipping').value || document.getElementById('m-shipping').value) || 0;
-    const cost = parseFloat(document.getElementById('d-cost').value || document.getElementById('m-cost').value) || 0;
-    const profit = amount - shipping - cost;
+    try {
+        const date = document.getElementById('d-date').value || document.getElementById('m-date').value || today();
+        const sender = document.getElementById('d-sender').value || document.getElementById('m-sender').value;
+        const receiver = document.getElementById('d-receiver').value || document.getElementById('m-receiver').value;
+        const bank = document.getElementById('d-bank').value || document.getElementById('m-bank').value;
+        const note = document.getElementById('d-note').value || document.getElementById('m-note').value;
+        const shop = document.getElementById('d-shop-select').value || document.getElementById('m-shop-select').value;
+        const items = document.getElementById('d-items').value || document.getElementById('m-items').value;
+        const shipping = parseFloat(document.getElementById('d-shipping').value || document.getElementById('m-shipping').value) || 0;
+        const cost = parseFloat(document.getElementById('d-cost').value || document.getElementById('m-cost').value) || 0;
+        const profit = amount - shipping - cost;
 
-    const transaction = {
-        id: genId(),
-        type: currentType,
-        amount: amount,
-        date: date,
-        senderName: sender,
-        receiverName: receiver,
-        bank: bank,
-        shop: shop,
-        note: note,
-        items: items,
-        shipping: shipping,
-        cost: cost,
-        profit: profit,
-        image: currentImage,
-        createdAt: new Date().toISOString()
-    };
+        const transaction = {
+            id: genId(),
+            type: currentType,
+            amount: amount,
+            date: date,
+            senderName: sender,
+            receiverName: receiver,
+            bank: bank,
+            shop: shop,
+            note: note,
+            items: items,
+            shipping: shipping,
+            cost: cost,
+            profit: profit,
+            image: currentImage,
+            createdAt: new Date().toISOString()
+        };
 
-    const saveBtn = document.querySelector('button[onclick="saveTransaction()"]');
-    if (saveBtn) {
-        saveBtn.disabled = true;
-        saveBtn.innerHTML = '⏳ กำลังบันทึก...';
-    }
-
-
-    // Sync to Supabase
-    if (typeof SupabaseService !== 'undefined') {
-        try {
-            let imgUrl = null;
-            if (currentImage) {
-                // Convert Base64 if needed inside service or just pass it
-                imgUrl = await SupabaseService.uploadImage(currentImage);
+        // 2. Sync to Supabase
+        if (typeof SupabaseService !== 'undefined') {
+            try {
+                let imgUrl = null;
+                if (currentImage) {
+                    imgUrl = await SupabaseService.uploadImage(currentImage);
+                }
+                const sbId = await SupabaseService.saveTransaction(transaction, imgUrl);
+                if (sbId) {
+                    transaction.supabase_id = sbId;
+                }
+            } catch (sbError) {
+                console.error('Supabase Error', sbError);
+                showToast('บันทึก Cloud ไม่สำเร็จ (แต่ในเครื่องบันทึกแล้ว)', 'error');
             }
-            const sbId = await SupabaseService.saveTransaction(transaction, imgUrl);
-            if (sbId) {
-                transaction.supabase_id = sbId; // Save Supabase ID locally!
+        }
+
+        // 3. Save Locally
+        store.transactions.push(transaction);
+        store.save();
+
+        // 4. Sync to Sheets
+        const sheetUrl = localStorage.getItem('ting_sheet_url');
+        if (sheetUrl) {
+            try {
+                // Use SheetsService if available, fallback to old method
+                if (typeof SheetsService !== 'undefined' && SheetsService.appendTransaction) {
+                    await SheetsService.appendTransaction(transaction);
+                } else {
+                    await appendToSheet(null, transaction);
+                }
+                showToast('บันทึกและซิงค์ Sheets สำเร็จ! 🎉');
+            } catch (e) {
+                console.error(e);
+                showToast('บันทึกแล้ว (แต่ Sheets ไม่ไป)', 'error');
             }
-        } catch (sbError) {
-            console.error('Supabase Error', sbError);
+        } else {
+            showToast('บันทึกสำเร็จ! (ไม่ได้เชื่อม Sheets)');
         }
-    }
 
-    store.transactions.push(transaction);
-    store.save();
+        resetUpload();
+        updateDashboard();
 
-    // Sync to sheets
-    const sheetUrl = localStorage.getItem('ting_sheet_url');
-    if (sheetUrl) {
-        try {
-            await appendToSheet(null, transaction); // First arg unused now
-            showToast('บันทึกและซิงค์ Sheets สำเร็จ! 🎉');
-        } catch (e) {
-            console.error(e);
-            showToast('บันทึกแล้ว (แต่ Sheets ไม่ไป)');
-        }
-    } else {
-        showToast('บันทึกสำเร็จ! (ไม่ได้เชื่อม Sheets)');
-    }
-
-    resetUpload();
-    updateDashboard();
-
-    // Reset Button
-    if (saveBtn) {
-        saveBtn.disabled = false;
-        saveBtn.innerHTML = '💾 บันทึก';
+    } catch (err) {
+        console.error('Save Error:', err);
+        showToast('เกิดข้อผิดพลาดในการบันทึก', 'error');
+    } finally {
+        // Unlock UI
+        isSavingTransaction = false;
+        saveBtns.forEach(btn => {
+            btn.disabled = false;
+            // Restore original text or default
+            btn.innerHTML = btn.dataset.orgText || '💾 บันทึก';
+        });
     }
 }
 
