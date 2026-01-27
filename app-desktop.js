@@ -1703,7 +1703,18 @@ loadConfig().then(() => {
             if (!window.supabase) return;
             const url = localStorage.getItem('ting_sb_url');
             const key = localStorage.getItem('ting_sb_key');
+
             if (url && key) {
+                // Force fill inputs if they are empty (Robustness fix)
+                const ids = ['d-sb-url', 'd-sb-key', 'm-sb-url', 'm-sb-key'];
+                ids.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el && !el.value) { // Only fill if empty
+                        const k = id.includes('url') ? 'ting_sb_url' : 'ting_sb_key';
+                        el.value = localStorage.getItem(k) || '';
+                    }
+                });
+
                 try {
                     sbClient = window.supabase.createClient(url, key);
                     console.log('⚡ Supabase Client Initialized');
@@ -1783,19 +1794,8 @@ loadConfig().then(() => {
     }
 
     // Auto Init
-    document.addEventListener('DOMContentLoaded', () => {
-        // Fill inputs
-        const ids = ['d-sb-url', 'd-sb-key', 'm-sb-url', 'm-sb-key'];
-        ids.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) {
-                const key = id.includes('url') ? 'ting_sb_url' : 'ting_sb_key';
-                el.value = localStorage.getItem(key) || '';
-            }
-        });
-        // Delay slightly to ensure Supabase lib loads
-        setTimeout(() => SupabaseService.init(), 1000);
-    });
+    // Auto Init (Run immediately)
+    SupabaseService.init();
 
 });
 
