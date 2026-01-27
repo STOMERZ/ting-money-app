@@ -1786,7 +1786,7 @@ loadConfig().then(() => {
             if (!sbClient) return;
 
             const payload = {
-                // id: transaction.id, // Let Supabase gen UUID if set to auto-gen, or send unique ID
+                // id: transaction.id, // Let Supabase gen UUID
                 date: transaction.date,
                 type: transaction.type,
                 amount: transaction.amount,
@@ -1806,7 +1806,7 @@ loadConfig().then(() => {
             const { error } = await sbClient.from('transactions').insert([payload]);
             if (error) {
                 console.error('Supabase Error:', error);
-                // Don't alert excessive errors in batch mode, just log
+                alert('Supabase Save Error: ' + error.message); // Show error to user
             } else {
                 console.log('✅ Saved to Supabase');
             }
