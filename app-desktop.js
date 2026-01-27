@@ -1749,6 +1749,13 @@ loadConfig().then(() => {
                         status.className = 'status-badge connected';
                         status.textContent = '✅ เชื่อมต่อแล้ว';
                     }
+                    // Fix: Provide feedback on mobile/load as well
+                    const mStatus = document.getElementById('m-sb-status'); // Assuming there might be one, or we create a generic status update function
+                    if (mStatus) {
+                        mStatus.className = 'status-badge connected';
+                        mStatus.textContent = '✅ เชื่อมต่อแล้ว';
+                    }
+                    console.log('✅ Supabase Connected Successfully');
                 } catch (e) {
                     console.error('Supabase Init Error:', e);
                 }
