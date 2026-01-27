@@ -1,0 +1,123 @@
+{
+    "receiver": {
+        "name": "ชนิสรา วู่",
+        "displayName": "น.ส. ชนิสรา วู่"
+    },
+    "banks": [
+        {
+            "id": "kbank",
+            "name": "กสิกรไทย",
+            "shortName": "กสิกร",
+            "patterns": [
+                "กสิกร",
+                "KBANK",
+                "K PLUS",
+                "K\\+"
+            ],
+            "emoji": "🟢",
+            "color": "#00A950"
+        },
+        {
+            "id": "scb",
+            "name": "ไทยพาณิชย์",
+            "shortName": "SCB",
+            "patterns": [
+                "ไทยพาณิชย์",
+                "SCB",
+                "Siam Commercial",
+                "เอสซีบี"
+            ],
+            "emoji": "🟣",
+            "color": "#4E2A84"
+        },
+        {
+            "id": "cimb",
+            "name": "ซีไอเอ็มบี",
+            "shortName": "CIMB",
+            "patterns": [
+                "ซีไอเอ็มบี",
+                "CIMB",
+                "CIMBT"
+            ],
+            "emoji": "🔴",
+            "color": "#ED1C24"
+        },
+        {
+            "id": "ktb",
+            "name": "กรุงไทย",
+            "shortName": "KTB",
+            "patterns": [
+                "กรุงไทย",
+                "KTB",
+                "Krungthai"
+            ],
+            "emoji": "🔵",
+            "color": "#0066B3"
+        },
+        {
+            "id": "bbl",
+            "name": "กรุงเทพ",
+            "shortName": "BBL",
+            "patterns": [
+                "กรุงเทพ",
+                "BBL",
+                "Bangkok Bank"
+            ],
+            "emoji": "🔵",
+            "color": "#1E4598"
+        },
+        {
+            "id": "promptpay",
+            "name": "พร้อมเพย์",
+            "shortName": "PromptPay",
+            "patterns": [
+                "พร้อมเพย์",
+                "PromptPay",
+                "Prompt Pay"
+            ],
+            "emoji": "💳",
+            "color": "#003D6B"
+        },
+        {
+            "id": "bay",
+            "name": "กรุงศรี",
+            "patterns": [
+                "กรุงศรี",
+                "BAY",
+                "Krungsri",
+                "Ayudhya",
+                "Bank of Ayudhya"
+            ],
+            "emoji": "🟡",
+            "color": "#FFC423"
+        },
+        {
+            "id": "ttb",
+            "name": "ทหารไทยธนชาต",
+            "shortName": "TTB",
+            "patterns": [
+                "ทหารไทย",
+                "TTB",
+                "TMB",
+                "ธนชาต"
+            ],
+            "emoji": "🔵",
+            "color": "#0066B2"
+        },
+        {
+            "id": "gsb",
+            "name": "ออมสิน",
+            "shortName": "GSB",
+            "patterns": [
+                "ออมสิน",
+                "GSB"
+            ],
+            "emoji": "💜",
+            "color": "#E91E8C"
+        }
+    ],
+    "defaultSource": "ig",
+    "defaultType": "income",
+    "ocrEnabled": true,
+    "slipApiUrl": "https://slip-c.oiioioiiioooioio.download"
+}

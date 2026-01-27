@@ -1,0 +1,3197 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TING HC - 🎀 สลิป & บัญชี</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Prompt:wght@300;400;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+    <style>
+        :root {
+            --pink-50: #fdf2f8;
+            --pink-100: #fce7f3;
+            --pink-200: #fbcfe8;
+            --pink-300: #f9a8d4;
+            --pink-400: #f472b6;
+            --pink-500: #ec4899;
+            --pink-600: #db2777;
+            --green-400: #4ade80;
+            --green-500: #10b981;
+            --red-400: #fb7185;
+            --yellow-400: #fbbf24;
+            --purple-400: #a78bfa;
+            --bg: #fff5f8;
+            --card: #ffffff;
+            --text: #4c0519;
+            --text-light: #9f1239;
+            --text-muted: #e11d48;
+            --border: rgba(244, 114, 182, 0.2);
+            --shadow: 0 10px 30px rgba(236, 72, 153, 0.08);
+            --shadow-lg: 0 20px 50px rgba(236, 72, 153, 0.15);
+            --radius-md: 20px;
+            --radius-lg: 32px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Outfit', 'Prompt', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* ============ DESKTOP LAYOUT ============ */
+        .desktop-layout {
+            display: none;
+            min-height: 100vh;
+        }
+
+        @media (min-width: 768px) {
+            .desktop-layout {
+                display: flex;
+            }
+
+            .mobile-layout {
+                display: none !important;
+            }
+        }
+
+        /* Small Tablets (iPad Portrait) - Compact Layout */
+        @media (min-width: 768px) and (max-width: 900px) {
+            .sidebar {
+                width: 220px;
+                padding: 1rem 1.25rem;
+            }
+
+            .sidebar-logo {
+                margin-bottom: 1.5rem;
+            }
+
+            .sidebar-logo h1 {
+                font-size: 1.5rem;
+            }
+
+            .nav-link {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .main-content {
+                margin-left: 220px;
+                padding: 1.5rem;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            /* Stats in 2x2 Grid */
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 1rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .stat-box {
+                padding: 1.25rem;
+            }
+
+            /* All content stacked vertically */
+            .dashboard-grid,
+            .upload-grid,
+            .settings-grid {
+                grid-template-columns: 1fr !important;
+                gap: 1.5rem;
+            }
+
+            .card {
+                padding: 1.25rem;
+            }
+        }
+
+        /* Larger Tablets & Small Laptops */
+        @media (min-width: 901px) and (max-width: 1366px) {
+            .sidebar {
+                width: 240px;
+                padding: 1.5rem;
+            }
+
+            .main-content {
+                margin-left: 240px;
+                padding: 2rem;
+            }
+
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.5rem;
+            }
+
+            .dashboard-grid,
+            .upload-grid,
+            .settings-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: #ffffff;
+            border-right: 2px solid var(--pink-50);
+            padding: 2.5rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            box-shadow: 20px 0 60px rgba(236, 72, 153, 0.05), 10px 0 30px rgba(0, 0, 0, 0.02);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--pink-100);
+            border-radius: 10px;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px dashed var(--border);
+        }
+
+        .sidebar-logo img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            filter: drop-shadow(0 4px 8px rgba(236, 72, 153, 0.2));
+        }
+
+        .sidebar-logo:hover img {
+            transform: scale(1.1) rotate(-10deg);
+        }
+
+        .sidebar-logo h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
+            color: var(--pink-600);
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -1px;
+        }
+
+        .sidebar-logo span {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--pink-400);
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            padding: 1.1rem 1.5rem;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            color: var(--text-light);
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 0.85rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            border: 2px solid transparent;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+        }
+
+        .nav-link:hover {
+            background: var(--pink-50);
+            color: var(--pink-600);
+            transform: translateX(10px) scale(1.02);
+            box-shadow: 0 5px 15px rgba(236, 72, 153, 0.05);
+        }
+
+        .nav-link.active {
+            background: linear-gradient(135deg, #f472b6 0%, #db2777 100%);
+            color: white;
+            box-shadow: 0 10px 25px rgba(219, 39, 119, 0.3);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-link>span:first-child {
+            font-size: 1.85rem;
+            transition: transform 0.4s;
+        }
+
+        .nav-link:hover>span:first-child {
+            transform: scale(1.2) rotate(10deg);
+        }
+
+        .sidebar-footer {
+            padding-top: 1.5rem;
+            border-top: 2px dashed var(--border);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* Sub-menu Styles */
+        .nav-submenu {
+            display: none;
+            flex-direction: column;
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+            animation: slideDown 0.3s ease;
+        }
+
+        .nav-submenu.open {
+            display: flex;
+        }
+
+        .nav-link.sub-link {
+            font-size: 0.9rem;
+            padding: 0.75rem 1rem;
+            border-left: 2px solid var(--border);
+            border-radius: 0 12px 12px 0;
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-link.sub-link:hover,
+        .nav-link.sub-link.active {
+            border-color: var(--pink-500);
+            background: var(--pink-50);
+            color: var(--pink-500);
+            box-shadow: none;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2.5rem 4rem;
+            min-height: 100vh;
+            background: var(--bg);
+            position: relative;
+        }
+
+        /* Add a subtle inner shadow to the content area for depth */
+        .main-content::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 280px;
+            width: 50px;
+            height: 100%;
+            pointer-events: none;
+            background: linear-gradient(to right, rgba(236, 72, 153, 0.02), transparent);
+            z-index: 5;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .page-title span {
+            font-size: 2rem;
+        }
+
+        /* Desktop Section Content */
+        .desktop-section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .desktop-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Stats Row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-box {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 1.75rem;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .stat-box:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--pink-300);
+        }
+
+        .stat-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+        }
+
+        .stat-box.income::before {
+            background: linear-gradient(90deg, #34d399, #10b981);
+        }
+
+        .stat-box.expense::before {
+            background: linear-gradient(90deg, #f87171, #ef4444);
+        }
+
+        .stat-box.balance::before {
+            background: linear-gradient(90deg, #f472b6, #db2777);
+        }
+
+        .stat-box.count::before {
+            background: linear-gradient(90deg, #fbbf24, #f59e0b);
+        }
+
+        .stat-box.profit::before {
+            background: linear-gradient(90deg, #a78bfa, #8b5cf6);
+        }
+
+        .stat-emoji {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+            transition: transform 0.3s;
+        }
+
+        .stat-box:hover .stat-emoji {
+            transform: scale(1.2) rotate(10deg);
+        }
+
+        .stat-number {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 0.25rem;
+            letter-spacing: -1px;
+        }
+
+        .stat-text {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--pink-400);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Dashboard Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 1.75rem;
+            box-shadow: var(--shadow);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Transaction List */
+        .tx-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 16px;
+            margin-bottom: 0.75rem;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        .tx-item:hover {
+            background: var(--pink-50);
+        }
+
+        .tx-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .tx-emoji {
+            font-size: 2rem;
+        }
+
+        .tx-info {
+            flex: 1;
+        }
+
+        .tx-name {
+            font-weight: 600;
+            margin-bottom: 0.125rem;
+        }
+
+        .tx-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tx-badge {
+            padding: 0.125rem 0.5rem;
+            border-radius: 50px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .tx-badge.ig {
+            background: linear-gradient(45deg, #f09433, #bc1888);
+        }
+
+        .tx-badge.line {
+            background: #06c755;
+        }
+
+        .tx-amount {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .tx-amount.income {
+            color: var(--green-500);
+        }
+
+        .tx-amount.expense {
+            color: #dc2626;
+        }
+
+        /* Quick Actions */
+        .quick-action {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.25rem;
+            background: var(--pink-50);
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quick-action:hover {
+            background: var(--pink-100);
+            border-color: var(--pink-400);
+            transform: translateX(5px);
+        }
+
+        .quick-action span:first-child {
+            font-size: 2rem;
+        }
+
+        .quick-action-text {
+            font-weight: 600;
+            color: var(--pink-500);
+        }
+
+        .quick-action-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Empty State */
+        .empty-box {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+
+        .empty-box .emoji {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-box p {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Upload Section Desktop */
+        .upload-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .upload-area {
+            background: white;
+            border: 3px dashed var(--pink-300);
+            border-radius: 24px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-area:hover {
+            border-color: var(--pink-500);
+            background: var(--pink-50);
+        }
+
+        .upload-area .emoji {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+        }
+
+        .upload-area h3 {
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        .upload-area p {
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .preview-box {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            display: none;
+        }
+
+        .preview-box.show {
+            display: block;
+        }
+
+        .preview-box img {
+            width: 100%;
+            border-radius: 16px;
+            border: 2px solid var(--pink-200);
+            margin-bottom: 1rem;
+        }
+
+        /* Form */
+        .form-box {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            display: none;
+        }
+
+        .form-box {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            display: none;
+        }
+
+        .form-box.show {
+            display: block;
+        }
+
+        .form-title {
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+            color: var(--pink-600);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 700;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 0.6rem;
+        }
+
+        .form-input,
+        .form-control,
+        select {
+            width: 100%;
+            background: #f8fafc;
+            border: 1px solid #f1f5f9;
+            padding: 1rem;
+            border-radius: 14px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            color: var(--text);
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .form-input:focus,
+        .form-control:focus,
+        select:focus {
+            background: white;
+            border-color: var(--pink-400);
+            box-shadow: 0 0 0 4px rgba(244, 63, 94, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .selector-row {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .selector-btn {
+            flex: 1;
+            padding: 1.25rem;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            background: white;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .selector-btn span {
+            font-size: 2rem;
+            transition: transform 0.3s;
+        }
+
+        .selector-btn:hover span {
+            transform: scale(1.15);
+        }
+
+        .selector-btn.active.income {
+            background: #ecfdf5;
+            border-color: var(--green-500);
+            color: var(--green-500);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.1);
+        }
+
+        .selector-btn.active.expense {
+            background: #fff1f2;
+            border-color: var(--pink-500);
+            color: var(--pink-600);
+            box-shadow: 0 8px 20px rgba(244, 63, 94, 0.1);
+        }
+
+        .selector-btn.active.ig {
+            background: linear-gradient(45deg, rgba(240, 148, 51, 0.1), rgba(188, 24, 136, 0.1));
+            border-color: #e1306c;
+            color: #e1306c;
+            box-shadow: 0 8px 20px rgba(225, 48, 108, 0.1);
+        }
+
+        .selector-btn.active.line {
+            background: rgba(6, 199, 85, 0.1);
+            border-color: #06c755;
+            color: #06c755;
+            box-shadow: 0 8px 20px rgba(6, 199, 85, 0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.875rem 1.75rem;
+            border-radius: var(--radius-md);
+            border: none;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--pink-400), var(--pink-500));
+            color: white;
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(236, 72, 153, 0.5);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--pink-500);
+            border: 2px solid var(--pink-300);
+            flex: 1;
+        }
+
+        .btn-secondary:hover {
+            background: var(--pink-50);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f87171, #ef4444);
+            color: white;
+        }
+
+        /* Settings */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+        }
+
+        .settings-section h3 {
+            font-size: 1.1rem;
+            color: var(--text);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 0;
+            border-bottom: 1px dashed var(--border);
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-label {
+            font-weight: 500;
+        }
+
+        .setting-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .toggle {
+            width: 50px;
+            height: 28px;
+            background: var(--pink-200);
+            border-radius: 50px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle.active {
+            background: var(--pink-500);
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle.active::after {
+            transform: translateX(22px);
+        }
+
+        .status-badge {
+            padding: 0.375rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-badge.connected {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--green-500);
+        }
+
+        .status-badge.disconnected {
+            background: rgba(248, 113, 113, 0.15);
+            color: #dc2626;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: white;
+            border: 2px solid var(--pink-300);
+            border-radius: 16px;
+            padding: 1rem 1.5rem;
+            box-shadow: var(--shadow-lg);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.success {
+            border-color: var(--green-400);
+        }
+
+        .toast.error {
+            border-color: var(--red-400);
+        }
+
+
+        /* Calendar Styles */
+        .calendar-container {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .calendar-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--pink-500);
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .calendar-nav-btn {
+            background: var(--pink-50);
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            color: var(--pink-500);
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .calendar-nav-btn:hover {
+            background: var(--pink-100);
+            transform: scale(1.1);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            font-weight: 600;
+            color: var(--text-muted);
+            padding: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .calendar-day {
+            /* aspect-ratio: 1; REMOVED to prevent huge cells on wide screens */
+            min-height: 80px;
+            /* Base size */
+            border: 1px solid var(--pink-200);
+            border-radius: 12px;
+            padding: 0.5rem;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .calendar-day:hover {
+            border-color: var(--pink-500);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.15);
+        }
+
+        .calendar-day.empty {
+            background: #f9fafb;
+            border-color: transparent;
+            cursor: default;
+        }
+
+        .calendar-day.empty:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .calendar-day.today {
+            border: 2px solid var(--pink-500);
+            background: var(--pink-50);
+        }
+
+        .calendar-date {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text);
+        }
+
+        .calendar-income {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--green-500);
+            background: rgba(34, 197, 94, 0.1);
+            padding: 1px 4px;
+            border-radius: 4px;
+            align-self: flex-end;
+            margin-top: auto;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        /* Responsive Calendar Adjustments */
+        @media (min-width: 1024px) {
+            .calendar-day {
+                min-height: 80px;
+                /* Reduced from aspect-ratio: 1 */
+                height: auto;
+            }
+        }
+
+        @media (max-width: 1024px) {
+
+            /* Notebook/iPad Landscape */
+            .calendar-container {
+                padding: 1.5rem;
+            }
+
+            .calendar-day {
+                min-height: 70px;
+                padding: 0.4rem;
+            }
+
+            .calendar-title {
+                font-size: 1.1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+
+            /* Mobile/iPad Portrait */
+            .calendar-grid {
+                gap: 4px;
+            }
+
+            .calendar-day-header {
+                font-size: 0.8rem;
+                padding: 0.25rem;
+            }
+
+            .calendar-day {
+                min-height: 50px;
+                padding: 2px;
+                border-radius: 8px;
+            }
+
+            .calendar-date {
+                font-size: 0.8rem;
+            }
+
+            .calendar-income {
+                font-size: 0.6rem;
+                padding: 1px 2px;
+            }
+        }
+
+        .calendar-income.high {
+            background: var(--green-500);
+            color: white;
+            box-shadow: 0 2px 4px rgba(34, 197, 94, 0.3);
+        }
+
+        /* Mobile Adjustments for Calendar */
+        @media (max-width: 768px) {
+            .calendar-day {
+                aspect-ratio: 0.8;
+                padding: 0.25rem;
+            }
+
+            .calendar-income {
+                font-size: 0.65rem;
+                padding: 1px 4px;
+            }
+        }
+
+        /* ============ MOBILE LAYOUT ============ */
+        /* ============ MOBILE LAYOUT ============ */
+        .mobile-layout {
+            display: none;
+            /* Hidden by default (Desktop first approach for safety) */
+        }
+
+        @media (max-width: 768px) {
+            .mobile-layout {
+                display: block;
+                padding: 1rem;
+                padding-bottom: 100px;
+                /* Space for bottom nav */
+                padding-top: 0.25rem;
+                /* Reduced top padding */
+            }
+        }
+
+        .m-header {
+            background: white;
+            border-radius: 20px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .m-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .m-logo img {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+        }
+
+        .m-logo span {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--pink-500);
+        }
+
+        /* Fixed Bottom Navigation */
+        .m-tabs {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            gap: 0.5rem;
+            background: white;
+            border-radius: 24px;
+            padding: 0.5rem;
+            margin-bottom: 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            justify-content: space-around;
+        }
+
+        .m-tab {
+            flex: 1;
+            padding: 0.5rem 0.25rem;
+            border: none;
+            background: transparent;
+            border-radius: 16px;
+            font-family: inherit;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .m-tab.active {
+            background: linear-gradient(135deg, var(--pink-400), var(--pink-500));
+            color: white;
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+        }
+
+        .m-tab span {
+            font-size: 1.25rem;
+        }
+
+        .m-section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+
+        .m-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .m-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            margin-top: 0.25rem;
+            /* Add specific spacing for Home */
+        }
+
+        .m-stat {
+            background: white;
+            border-radius: 16px;
+            padding: 1rem;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .m-stat-emoji {
+            font-size: 1.5rem;
+        }
+
+        .m-stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .m-stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .m-card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.25rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 1rem;
+        }
+
+        .m-upload-zone {
+            border: 2px dashed var(--pink-300);
+            border-radius: 16px;
+            padding: 2rem 1rem;
+            text-align: center;
+        }
+
+        .m-upload-zone .emoji {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .m-btns {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .m-btns .btn {
+            flex: 1;
+            font-size: 0.9rem;
+            padding: 0.75rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Glassmorphism Classes */
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: var(--shadow);
+        }
+
+        /* Batch Upload Styles */
+        .batch-review-container {
+            margin-top: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            scroll-snap-type: y proximity;
+            scroll-padding-top: 100px;
+        }
+
+
+
+        .batch-item {
+            background: linear-gradient(180deg, #ffffff 0%, #fffafc 100%);
+            border-radius: 28px;
+            padding: 1.25rem;
+            box-shadow: 0 10px 35px rgba(236, 72, 153, 0.06), 0 2px 10px rgba(0, 0, 0, 0.02);
+            display: flex;
+            gap: 1.75rem;
+            position: relative;
+            border: 2px solid rgba(244, 114, 182, 0.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            scroll-snap-align: start;
+        }
+
+        .batch-item::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 30px;
+            background: linear-gradient(135deg, rgba(244, 114, 182, 0.1) 0%, rgba(219, 39, 119, 0.05) 100%);
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .batch-item.active {
+            border-color: var(--pink-400);
+            box-shadow: 0 20px 50px rgba(236, 72, 153, 0.12), 0 8px 20px rgba(0, 0, 0, 0.03);
+            transform: translateY(-2px) scale(1.005);
+            background: linear-gradient(180deg, #ffffff 0%, #fff5f8 100%);
+        }
+
+        .batch-item:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 50px rgba(236, 72, 153, 0.12), 0 8px 20px rgba(0, 0, 0, 0.03);
+            border-color: var(--pink-300);
+        }
+
+        .batch-item:hover::before {
+            opacity: 1;
+        }
+
+        .batch-index {
+            padding: 4px 12px;
+            background: var(--pink-100);
+            color: var(--pink-600);
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            border: 1px solid var(--pink-200);
+            display: inline-flex;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(236, 72, 153, 0.05);
+        }
+
+        .batch-img-wrap {
+            width: 120px;
+            height: 160px;
+            border-radius: 20px;
+            overflow: hidden;
+            flex-shrink: 0;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(236, 72, 153, 0.1);
+            border: 3px solid rgba(244, 114, 182, 0.15);
+            transition: all 0.3s;
+        }
+
+        .batch-img-wrap:hover {
+            border-color: var(--pink-400);
+            box-shadow: 0 12px 35px rgba(236, 72, 153, 0.2);
+            transform: scale(1.02);
+        }
+
+        .batch-img-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .batch-img-wrap:hover img {
+            transform: scale(1.1);
+        }
+
+        /* 🔐 Lock Screen Styles */
+        .lock-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.4s;
+        }
+
+        .lock-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .lock-content {
+            text-align: center;
+            max-width: 320px;
+            width: 100%;
+        }
+
+        .pin-display {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .pin-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: var(--pink-100);
+            border: 2px solid var(--pink-300);
+            transition: all 0.2s;
+        }
+
+        .pin-dot.filled {
+            background: var(--pink-500);
+            transform: scale(1.2);
+        }
+
+        .pin-keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem;
+            padding: 0 1rem;
+        }
+
+        .pin-btn {
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            border: none;
+            background: white;
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.15);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--pink-600);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto;
+        }
+
+        .pin-btn:active {
+            transform: scale(0.9);
+            background: var(--pink-50);
+        }
+
+        .pin-btn.delete {
+            background: transparent;
+            box-shadow: none;
+            color: var(--pink-400);
+            font-size: 1.2rem;
+        }
+
+        .pin-btn.empty {
+            background: transparent;
+            box-shadow: none;
+            cursor: default;
+        }
+
+        .batch-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            min-width: 0;
+            /* Important for flex child truncation */
+        }
+
+        .batch-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+        }
+
+        .batch-status {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--pink-500);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .batch-item .form-label {
+            font-size: 0.8rem;
+            color: var(--pink-400);
+            font-weight: 700;
+            margin-bottom: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .batch-item .form-input {
+            background: #fdf2f8 !important;
+            border: 2px solid transparent !important;
+            border-radius: 14px !important;
+            padding: 0.5rem 0.75rem !important;
+            font-size: 0.95rem !important;
+            color: var(--pink-600) !important;
+            transition: all 0.2s;
+        }
+
+        .batch-item .form-input:focus {
+            background: white !important;
+            border-color: var(--pink-300) !important;
+            box-shadow: 0 0 0 4px var(--pink-50) !important;
+        }
+
+        /* NEW Batch Title Bar Design */
+        .batch-title-bar {
+            background: linear-gradient(135deg, #ffffff 0%, #fff5f8 100%);
+            padding: 1.5rem 2rem;
+            border-radius: 28px;
+            box-shadow: 0 10px 40px rgba(236, 72, 153, 0.08), 0 4px 15px rgba(0, 0, 0, 0.02);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            border: 2px solid rgba(244, 114, 182, 0.12);
+        }
+
+        .batch-title-bar h3 {
+            white-space: nowrap;
+        }
+
+        .batch-title-bar>div:first-child {
+            flex-shrink: 0;
+            min-width: fit-content;
+        }
+
+        .batch-apply-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-right: 1.5rem;
+            background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+            padding: 1rem 1.25rem;
+            border-radius: 20px;
+            border: 2px solid rgba(244, 114, 182, 0.15);
+            flex-wrap: wrap;
+        }
+
+        .batch-apply-label {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            font-size: 0.75rem;
+            color: var(--pink-600);
+            font-weight: 700;
+            line-height: 1;
+            margin-right: 12px;
+            white-space: nowrap;
+            flex-shrink: 0;
+            opacity: 0.8;
+        }
+
+        .btn-icon-box {
+            width: 60px;
+            height: 60px;
+            flex-shrink: 0;
+            border-radius: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--pink-200);
+            background: linear-gradient(180deg, #ffffff 0%, #fdf2f8 100%);
+            color: var(--pink-500);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-size: 0.7rem;
+            font-weight: 800;
+            gap: 3px;
+            padding: 0;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.08);
+        }
+
+        .btn-icon-box span:first-child {
+            font-size: 1.4rem;
+            transition: transform 0.3s;
+        }
+
+        .btn-icon-box:hover {
+            transform: translateY(-5px) scale(1.05);
+            border-color: var(--pink-400);
+            background: linear-gradient(180deg, #ffffff 0%, #fce7f3 100%);
+            box-shadow: 0 8px 25px rgba(236, 72, 153, 0.2);
+        }
+
+        .btn-icon-box:hover span:first-child {
+            transform: scale(1.15) rotate(-8deg);
+        }
+
+        .btn-icon-box:active {
+            transform: translateY(-2px) scale(0.98);
+        }
+
+
+        .batch-main-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn-big-box {
+            height: 70px;
+            min-width: 80px;
+            border-radius: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            gap: 4px;
+            line-height: 1.1;
+            font-size: 0.9rem;
+            padding: 0 1rem;
+            border: none;
+            position: relative;
+        }
+
+        .btn-big-box.outline {
+            background: linear-gradient(180deg, #ffffff 0%, #fdf2f8 100%);
+            border: 2px solid var(--pink-200);
+            color: var(--pink-500);
+            aspect-ratio: 1/1;
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.05);
+        }
+
+        .btn-big-box.outline:hover {
+            background: linear-gradient(180deg, #ffffff 0%, #fce7f3 100%);
+            border-color: var(--pink-400);
+            color: var(--pink-600);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(236, 72, 153, 0.12);
+        }
+
+        .btn-big-box.primary {
+            background: linear-gradient(135deg, #f472b6 0%, #db2777 100%);
+            color: white;
+            box-shadow: 0 8px 25px rgba(219, 39, 119, 0.35);
+            width: 120px;
+        }
+
+        .btn-big-box.primary:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(219, 39, 119, 0.4);
+        }
+
+        .btn-big-box span:first-child {
+            /* Icon */
+            font-size: 1.5rem;
+            margin-bottom: 2px;
+        }
+
+
+
+        @media (max-width: 1100px) {
+            .sidebar {
+                width: 250px;
+                padding: 1.25rem 0.75rem;
+            }
+
+            .main-content {
+                margin-left: 250px;
+                padding: 1.25rem 1.5rem;
+            }
+
+            .main-content::before {
+                left: 250px;
+            }
+
+            .batch-title-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1.25rem;
+                padding: 1.25rem;
+            }
+
+            .batch-apply-section {
+                margin-right: 0;
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+                padding: 1rem;
+                background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+                border-radius: 20px;
+                gap: 12px;
+            }
+
+            .batch-apply-label {
+                width: 100%;
+                text-align: center;
+                align-items: center;
+                margin-bottom: 0.5rem;
+                margin-right: 0;
+            }
+
+            .batch-main-actions {
+                width: 100%;
+                justify-content: center;
+                gap: 1.5rem;
+            }
+
+            .btn-icon-box {
+                width: 54px;
+                height: 54px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .batch-row {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .upload-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-box {
+                padding: 1.25rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .batch-item {
+                flex-direction: column;
+                padding: 1.5rem;
+                gap: 1.25rem;
+            }
+
+            .batch-img-wrap {
+                width: 100%;
+                height: 250px;
+            }
+
+            .batch-row {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+
+            .batch-title-bar {
+                flex-direction: column;
+                padding: 1.5rem;
+                gap: 1.5rem;
+                align-items: stretch;
+            }
+
+            .batch-title-bar>div:first-child {
+                justify-content: center;
+            }
+
+            .batch-title-bar>div:last-child {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+
+            .batch-apply-section {
+                margin-right: 0;
+                justify-content: center;
+                background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+                padding: 1rem;
+                border-radius: 22px;
+                flex-wrap: wrap;
+                width: 100%;
+                gap: 8px;
+                border: 1px solid rgba(244, 114, 182, 0.1);
+            }
+
+            .batch-apply-label {
+                align-items: center;
+                margin-bottom: 0.5rem;
+                width: 100%;
+                text-align: center;
+            }
+
+            .btn-icon-box {
+                width: 50px;
+                height: 50px;
+            }
+
+            .btn-big-box {
+                width: 100% !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ============ DESKTOP LAYOUT ============ -->
+    <div class="desktop-layout">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <img src="Hello-Kitty-Logo.png" alt="Kitty">
+                <div>
+                    <h1>TING HC</h1>
+                    <span>🎀 บัญชีของถิง</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <button class="nav-link active" data-tab="home">
+                    <span>🏠</span>
+                    หน้าหลัก
+                </button>
+                <button class="nav-link" data-tab="add">
+                    <span>🌸</span>
+                    เพิ่มสลิป
+                </button>
+                <div class="nav-group">
+                    <button class="nav-link" data-tab="shops" onclick="toggleSubmenu('shop-submenu')">
+                        <span>🏪</span>
+                        <div>
+                            ร้านค้า
+                            <span
+                                style="font-size: 0.7rem; display: block; opacity: 0.6; font-style: normal !important;">จัดการร้าน/ค่าส่ง</span>
+                        </div>
+                        <span style="font-size: 0.8rem; margin-left: auto;">▼</span>
+                    </button>
+                    <div id="shop-submenu" class="nav-submenu">
+                        <button class="nav-link sub-link" data-tab="shops">
+                            🏪 รายชื่อร้าน
+                        </button>
+                        <button class="nav-link sub-link" data-tab="shipping">
+                            🚚 ตั้งค่าส่ง
+                        </button>
+                        <button class="nav-link sub-link" data-tab="cost">
+                            💰 ตั้งต้นทุน
+                        </button>
+                    </div>
+                </div>
+
+                <button class="nav-link" data-tab="history">
+                    <span>📝</span>
+                    ประวัติรายการ
+                </button>
+                <button class="nav-link" data-tab="calendar">
+                    <span>📅</span>
+                    ปฏิทินรับทรัพย์
+                </button>
+                <button class="nav-link" data-tab="config">
+                    <span>💝</span>
+                    ตั้งค่า
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <p>Made with Johnny💖</p>
+                <p style="font-size: 0.75rem; opacity: 0.7;">Version 1.0</p>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <!-- Home Section -->
+            <section id="d-home" class="desktop-section active">
+                <div class="page-header">
+                    <h2 class="page-title"><span>🏠</span> หน้าหลัก</h2>
+                    <span style="color: var(--text-muted);">📅 มกราคม 2569</span>
+                </div>
+
+                <div class="stats-row">
+                    <div class="stat-box income">
+                        <div class="stat-emoji">🌷</div>
+                        <div class="stat-number" id="d-income">฿0</div>
+                        <div class="stat-text">รายรับ</div>
+                    </div>
+                    <div class="stat-box expense">
+                        <div class="stat-emoji">🛍️</div>
+                        <div class="stat-number" id="d-expense">฿0</div>
+                        <div class="stat-text">รายจ่าย</div>
+                    </div>
+                    <div class="stat-box count">
+                        <div class="stat-emoji">✨</div>
+                        <div class="stat-number" id="d-count">0</div>
+                        <div class="stat-text">จำนวนสลิป</div>
+                    </div>
+                    <div class="stat-box profit">
+                        <div class="stat-emoji">💎</div>
+                        <div class="stat-number" id="d-profit-total">฿0</div>
+                        <div class="stat-text">กำไรสุทธิ</div>
+                    </div>
+                </div>
+
+                <!-- NEW: Shop Stats -->
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 class="card-title" style="margin: 0;">🏆 สัดส่วนยอดขาย (Top Shops)</h3>
+                    </div>
+
+                    <div
+                        style="height: 300px; position: relative; width: 100%; display: flex; justify-content: center; align-items: center;">
+                        <canvas id="d-shop-chart"></canvas>
+                        <div id="d-shop-no-data" style="display: none; color: #9ca3af;">ยังไม่มีข้อมูลยอดขาย</div>
+                    </div>
+                    <!-- Hidden original list just in case needed for calculations -->
+                    <div id="d-shop-stats" style="display: none;"></div>
+                </div>
+
+                <!-- Chart.js Library -->
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <h3 class="card-title">📋 รายการล่าสุด</h3>
+                        <div id="d-recent">
+                            <div class="empty-box">
+                                <div class="emoji">💭</div>
+                                <p>ยังไม่มีรายการค่ะ</p>
+                                <span>เพิ่มสลิปเพื่อเริ่มต้นนะคะ~</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="card" style="margin-bottom: 1.5rem;">
+                            <h3 class="card-title">⚡ ทางลัด</h3>
+                            <div class="quick-action" onclick="switchTab('add')">
+                                <span>🌸</span>
+                                <div>
+                                    <div class="quick-action-text">เพิ่มสลิปใหม่</div>
+                                    <div class="quick-action-desc">อัปโหลดรูปสลิปโอนเงิน</div>
+                                </div>
+                            </div>
+                            <div class="quick-action" onclick="switchTab('history')">
+                                <span>📊</span>
+                                <div>
+                                    <div class="quick-action-text">ดูประวัติทั้งหมด</div>
+                                    <div class="quick-action-desc">รายการรายรับ-รายจ่าย</div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+            </section>
+
+            <!-- Add Slip Section -->
+            <section id="d-add" class="desktop-section">
+                <div class="page-header">
+                    <h2 class="page-title"><span>🌸</span> เพิ่มสลิป</h2>
+                </div>
+
+                <div class="upload-grid">
+                    <div>
+                        <div class="upload-area" id="d-dropzone">
+                            <div class="emoji">🎀</div>
+                            <h3>คลิกเพื่อเลือกรูปสลิป</h3>
+                            <p>หรือลากไฟล์มาวางที่นี่ค่ะ 💖</p>
+                            <input type="file" id="d-file" accept="image/*" multiple hidden>
+                            <div style="display: flex; gap: 1rem; justify-content: center;">
+                                <button class="btn btn-primary" onclick="document.getElementById('d-file').click()">🌸
+                                    เลือกไฟล์ (เลือกหลายรูปได้)</button>
+
+                            </div>
+                        </div>
+
+                        <!-- Batch Review Desktop -->
+                        <div id="d-batch-container" class="hidden">
+                            <div class="batch-title-bar">
+                                <div style="display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0;">
+                                    <div style="font-size: 1.8rem;">📑</div>
+                                    <div>
+                                        <h3
+                                            style="margin:0; color:var(--pink-600); font-size: 1.3rem; font-weight: 800;">
+                                            ตรวจสอบสลิปแบบกลุ่ม</h3>
+                                        <div style="font-size: 0.85rem; color: var(--pink-400); font-weight: 700;">
+                                            (<span id="d-batch-count">0</span> ใบ)</div>
+                                    </div>
+                                </div>
+
+                                <div style="display: flex; align-items: center;">
+                                    <div class="batch-apply-section">
+                                        <div class="batch-apply-label">
+                                            <span>ใช้ใบแรกกับ</span>
+                                            <span>ทั้งหมด:</span>
+                                        </div>
+                                        <button class="btn-icon-box" onclick="applyBatchAll('shop')">
+                                            <span>🏪</span>
+                                            <span>ร้าน</span>
+                                        </button>
+                                        <button class="btn-icon-box" onclick="applyBatchAll('shipping')">
+                                            <span>🚚</span>
+                                            <span>ส่ง</span>
+                                        </button>
+                                        <button class="btn-icon-box" onclick="applyBatchAll('cost')">
+                                            <span>💰</span>
+                                            <span>ทุน</span>
+                                        </button>
+                                    </div>
+
+                                    <div class="batch-main-actions">
+                                        <button class="btn-big-box outline" onclick="resetUpload()">
+                                            <span style="font-size: 1.8rem; color: var(--pink-400);">✕</span>
+                                            <span>ยกเลิก</span>
+                                        </button>
+                                        <button class="btn-big-box primary" onclick="saveAllBatch()"
+                                            id="d-batch-save-btn">
+                                            <span>💾</span>
+                                            <span>บันทึก<br>ทั้งหมด</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="d-batch-list" class="batch-review-container"></div>
+                        </div>
+
+                        <div class="preview-box" id="d-preview">
+                            <img src="" alt="Preview" id="d-preview-img">
+                            <div class="ocr-status" id="d-ocr-status">⏳ กำลังอ่านสลิป...</div>
+                            <button class="btn btn-secondary" onclick="resetUpload()"
+                                style="width: 100%; margin-top: 1rem;">❌ ลบรูป</button>
+                        </div>
+                    </div>
+
+                    <div class="form-box" id="d-form">
+                        <h3 class="form-title">✏️ ข้อมูลสลิป</h3>
+
+                        <div class="form-group">
+                            <label class="form-label">ประเภท</label>
+                            <div class="selector-row">
+                                <button type="button" class="selector-btn active income" data-type="income">
+                                    <span>🌷</span> รายรับ
+                                </button>
+                                <button type="button" class="selector-btn expense" data-type="expense">
+                                    <span>🛍️</span> รายจ่าย
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Shop Selector -->
+                        <div class="form-group">
+                            <label class="form-label">🏪 ร้านค้า / ช่องทางจำหน่าย</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <select class="form-input" id="d-shop-select">
+                                    <option value="">-- ไม่ระบุ --</option>
+                                </select>
+                                <button class="btn btn-secondary" onclick="switchTab('config')"
+                                    style="flex: 0 0 auto;">⚙️</button>
+                            </div>
+                        </div>
+
+                        <!-- Source selector removed -->
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">จำนวนเงินรวม</label>
+                                <input type="number" class="form-input" id="d-amount" placeholder="0.00" step="0.01"
+                                    oninput="calculateProfit('d')">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">วันที่</label>
+                                <input type="date" class="form-input" id="d-date">
+                            </div>
+                        </div>
+
+                        <!-- Product details -->
+                        <div class="form-group">
+                            <label class="form-label">📦 รายการสินค้า</label>
+                            <textarea class="form-input" id="d-items" rows="2"
+                                placeholder="เช่น เสื้อยืด 2 ตัว, กางเกง 1 ตัว"></textarea>
+                        </div>
+
+                        <!-- Cost & Profit -->
+                        <div class="form-group">
+                            <label class="form-label">🚚 ค่าส่ง</label>
+                            <div style="display: flex; gap: 5px;">
+                                <select id="d-shipping-select" class="form-input"
+                                    style="flex: 1; padding-right: 20px; font-size: 0.9rem;"
+                                    onchange="applyShippingOption()">
+                                    <option value="">-- เลือก --</option>
+                                </select>
+                                <input type="number" class="form-input" id="d-shipping" placeholder="0.00" step="0.01"
+                                    style="flex: 1;" oninput="calculateProfit('d')">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">💰 ต้นทุนสินค้า</label>
+                            <div style="display: flex; gap: 5px;">
+                                <select id="d-cost-select" class="form-input"
+                                    style="flex: 1; padding-right: 20px; font-size: 0.9rem;"
+                                    onchange="applyCostOption()">
+                                    <option value="">-- เลือก --</option>
+                                </select>
+                                <input type="number" class="form-input" id="d-cost" placeholder="0.00" step="0.01"
+                                    style="flex: 1;" oninput="calculateProfit('d')">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">💎 กำไรสุทธิ</label>
+                            <input type="number" class="form-input" id="d-profit" placeholder="0.00" readonly
+                                style="background-color: #fce7f3; font-weight: bold; color: #db2777;">
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">ชื่อผู้โอน</label>
+                                <input type="text" class="form-input" id="d-sender" placeholder="ชื่อผู้โอน">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">ชื่อผู้รับ</label>
+                                <input type="text" class="form-input" id="d-receiver" placeholder="ชื่อผู้รับ">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">ธนาคาร</label>
+                            <select class="form-input" id="d-bank">
+                                <option value="">เลือกธนาคาร</option>
+                                <option value="กสิกรไทย">🟢 กสิกรไทย</option>
+                                <option value="ไทยพาณิชย์">🟣 ไทยพาณิชย์</option>
+                                <option value="กรุงไทย">🔵 กรุงไทย</option>
+                                <option value="กรุงเทพ">🔵 กรุงเทพ</option>
+                                <option value="พร้อมเพย์">💳 พร้อมเพย์</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">หมายเหตุ</label>
+                            <input type="text" class="form-input" id="d-note" placeholder="รายละเอียดเพิ่มเติม...">
+                        </div>
+
+                        <div class="form-actions">
+                            <button class="btn btn-secondary" onclick="resetUpload()">ยกเลิก</button>
+                            <button class="btn btn-primary" onclick="saveTransaction()">💾 บันทึก</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- History Section -->
+            <section id="d-history" class="desktop-section">
+                <div class="page-header">
+                    <h2 class="page-title"><span>📝</span> ประวัติรายการ</h2>
+                </div>
+
+                <div class="card">
+                    <div id="d-all-list">
+                        <div class="empty-box">
+                            <div class="emoji">💭</div>
+                            <p>ยังไม่มีรายการค่ะ</p>
+                            <span>เพิ่มสลิปเพื่อเริ่มต้นนะคะ~</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Calendar Section -->
+            <section id="d-calendar" class="desktop-section">
+                <div class="calendar-header">
+                    <div>
+                        <h2 class="calendar-title" style="margin-bottom: 0.5rem;">📅 ปฏิทินรับทรัพย์</h2>
+                        <span style="color: var(--text-muted);" id="calendar-summary">รายรับทั้งเดือน: ฿0</span>
+                    </div>
+                    <div class="calendar-nav">
+                        <button class="calendar-nav-btn" onclick="changeCalendarMonth(-1)">❮</button>
+                        <h3 id="current-month-display"
+                            style="min-width: 150px; text-align: center; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                            มกราคม 2569</h3>
+                        <button class="calendar-nav-btn" onclick="changeCalendarMonth(1)">❯</button>
+                    </div>
+                </div>
+
+                <div class="calendar-container">
+                    <div class="calendar-grid" id="calendar-grid">
+                        <!-- Header Days -->
+                        <div class="calendar-day-header">อา.</div>
+                        <div class="calendar-day-header">จ.</div>
+                        <div class="calendar-day-header">อ.</div>
+                        <div class="calendar-day-header">พ.</div>
+                        <div class="calendar-day-header">พฤ.</div>
+                        <div class="calendar-day-header">ศ.</div>
+                        <div class="calendar-day-header">ส.</div>
+
+                        <!-- Days will be generated here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Shops Section (NEW) -->
+            <section id="d-shops" class="desktop-section">
+                <div class="page-header">
+                    <h2 class="page-title"><span>🏪</span> จัดการร้านค้า</h2>
+                </div>
+                <div class="card">
+                    <!-- New Card Design -->
+                    <div class="card"
+                        style="box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: none; overflow: hidden; padding: 0;">
+                        <div style="background: linear-gradient(135deg, #fdf2f8 0%, #fff 100%); padding: 2rem;">
+                            <h3 style="color: #db2777; margin-bottom: 0.5rem; font-size: 1.25rem;">📝
+                                เพิ่มรายชื่อร้านค้า</h3>
+                            <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 1.5rem;">เพิ่มร้านค้าของคุณ
+                                เพื่อใช้เลือกตอนกรอกสลิป (เช่น Shopee, TikTok, หน้าร้าน)</p>
+
+                            <div
+                                style="display: flex; gap: 10px; max-width: 100%; align-items: stretch; flex-wrap: wrap;">
+                                <div style="position: relative; flex: 1; min-width: 200px;">
+                                    <span
+                                        style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 1.2rem;">🏪</span>
+                                    <input type="text" id="new-shop-name" class="form-control"
+                                        placeholder="ชื่อร้าน (เช่น Shop A)"
+                                        style="padding-left: 45px; height: 50px; border-radius: 12px; border: 1px solid #e5e7eb; font-size: 1rem; width: 100%; box-sizing: border-box;">
+                                </div>
+                                <button class="btn btn-primary" onclick="addShop()"
+                                    style="height: 50px; padding: 0 2rem; border-radius: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px; flex-shrink: 0; min-width: 120px; justify-content: center;">
+                                    <span>บวกเพิ่ม</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div style="background: #ffffff; padding: 1.5rem; border-top: 1px solid #f3f4f6;">
+                            <h4 style="font-size: 0.95rem; color: #4b5563; margin-bottom: 1rem; font-weight: 600;">
+                                ร้านค้าที่มีอยู่แล้ว:</h4>
+                            <div id="d-shop-list" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
+                            <div id="d-shop-empty"
+                                style="text-align: center; color: #9ca3af; padding: 1rem; font-size: 0.9rem; display: none;">
+                                ยังไม่มีร้านค้า
+                            </div>
+                        </div>
+                    </div>
+            </section>
+
+            <!-- Shipping Section (NEW) -->
+            <section id="d-shipping" class="desktop-section">
+                <div class="page-header">
+                    <h2 class="page-title"><span>🚚</span> ตั้งค่าส่งมาตรฐาน</h2>
+                </div>
+                <div class="card"
+                    style="box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: none; overflow: hidden; padding: 0;">
+                    <div style="background: linear-gradient(135deg, #f0fdf4 0%, #fff 100%); padding: 2rem;">
+                        <h3 style="color: #15803d; margin-bottom: 0.5rem; font-size: 1.25rem;">🚚 ตั้งค่าขนส่ง
+                            (Shipping)</h3>
+                        <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 1.5rem;">
+                            เพิ่มตัวเลือกขนส่งพร้อมราคามาตรฐาน (เช่น EMS 50, Flash 35)</p>
+
+                        <div style="display: flex; gap: 10px; max-width: 100%; align-items: stretch; flex-wrap: wrap;">
+                            <div style="position: relative; flex: 2; min-width: 200px;">
+                                <span
+                                    style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 1.2rem;">📦</span>
+                                <input type="text" id="new-shipping-name" class="form-control"
+                                    placeholder="ชื่อขนส่ง (เช่น EMS)"
+                                    style="padding-left: 45px; height: 50px; border-radius: 12px; border: 1px solid #d1fae5; font-size: 1rem; width: 100%; box-sizing: border-box;">
+                            </div>
+                            <div style="position: relative; flex: 1; min-width: 120px;">
+                                <span
+                                    style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 1rem; color: #9ca3af;">฿</span>
+                                <input type="number" id="new-shipping-price" class="form-control" placeholder="ราคา"
+                                    style="padding-left: 35px; height: 50px; border-radius: 12px; border: 1px solid #d1fae5; font-size: 1rem; width: 100%; box-sizing: border-box;">
+                            </div>
+                            <button class="btn" onclick="addShipping()"
+                                style="background: #22c55e; color: white; height: 50px; padding: 0 2rem; border-radius: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px; flex-shrink: 0; min-width: 100px; justify-content: center;">
+                                <span>เพิ่ม</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="background: #ffffff; padding: 1.5rem; border-top: 1px solid #f3f4f6;">
+                        <h4 style="font-size: 0.95rem; color: #4b5563; margin-bottom: 1rem; font-weight: 600;">
+                            ตัวเลือกขนส่งที่มี:</h4>
+                        <div id="d-shipping-list" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
+                        <div id="d-shipping-empty"
+                            style="text-align: center; color: #9ca3af; padding: 1rem; font-size: 0.9rem; display: none;">
+                            ไม่มีข้อมูลขนส่ง</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Cost Section (NEW) -->
+            <section id="d-cost" class="desktop-section">
+                <div class="page-header">
+                    <h2 class="page-title"><span>💰</span> ตั้งต้นทุนมาตรฐาน</h2>
+                </div>
+                <div class="card"
+                    style="box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: none; overflow: hidden; padding: 0;">
+                    <div style="background: linear-gradient(135deg, #fff7ed 0%, #fff 100%); padding: 2rem;">
+                        <h3 style="color: #c2410c; margin-bottom: 0.5rem; font-size: 1.25rem;">📦 ตั้งค่าต้นทุน (Cost)
+                        </h3>
+                        <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 1.5rem;">
+                            เพิ่มต้นทุนแฝงหรือต้นทุนคงที่ (เช่น ค่ากล่อง, ค่าแพ็ค, ค่าสติ๊กเกอร์)</p>
+
+                        <div style="display: flex; gap: 10px; max-width: 100%; align-items: stretch; flex-wrap: wrap;">
+                            <div style="position: relative; flex: 2; min-width: 200px;">
+                                <span
+                                    style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 1.2rem;">🔖</span>
+                                <input type="text" id="new-cost-name" class="form-control"
+                                    placeholder="รายการ (เช่น ค่ากล่อง)"
+                                    style="padding-left: 45px; height: 50px; border-radius: 12px; border: 1px solid #fed7aa; font-size: 1rem; width: 100%; box-sizing: border-box;">
+                            </div>
+                            <div style="position: relative; flex: 1; min-width: 120px;">
+                                <span
+                                    style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 1rem; color: #9ca3af;">฿</span>
+                                <input type="number" id="new-cost-price" class="form-control" placeholder="ราคา"
+                                    style="padding-left: 35px; height: 50px; border-radius: 12px; border: 1px solid #fed7aa; font-size: 1rem; width: 100%; box-sizing: border-box;">
+                            </div>
+                            <button class="btn" onclick="addCostOption()"
+                                style="background: #f97316; color: white; height: 50px; padding: 0 2rem; border-radius: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px; flex-shrink: 0; min-width: 100px; justify-content: center;">
+                                <span>เพิ่ม</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="background: #ffffff; padding: 1.5rem; border-top: 1px solid #f3f4f6;">
+                        <h4 style="font-size: 0.95rem; color: #4b5563; margin-bottom: 1rem; font-weight: 600;">
+                            รายการต้นทุนที่มี:</h4>
+                        <div id="d-cost-list" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
+                        <div id="d-cost-empty"
+                            style="text-align: center; color: #9ca3af; padding: 1rem; font-size: 0.9rem; display: none;">
+                            ไม่มีข้อมูลต้นทุน</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="d-config" class="desktop-section">
+                <div class="page-header">
+                    <h2 class="page-title"><span>💝</span> ตั้งค่า</h2>
+                </div>
+
+                <div class="settings-grid">
+
+                    <div class="card settings-section">
+                        <h3>📊 Google Sheets Connection</h3>
+                        <div class="setting-item">
+                            <div>
+                                <div class="setting-label">Apps Script URL (Web App)</div>
+                                <div class="setting-desc" style="color: #6b7280;">
+                                    วางลิงก์ Web App ที่ได้จากการ Deploy<br>
+                                    <a href="#"
+                                        onclick="alert('วิธีทำ:\n1. ไปที่ Google Sheet\n2. Extensions > Apps Script\n3. วางโค้ดที่ให้ไป\n4. Deploy > New deployment > Web app > Anyone\n5. ก๊อปลิงก์มาวางที่นี่')"
+                                        style="color: var(--pink-500); font-size: 0.8rem;">(ดูวิธีทำ)</a>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="text" class="form-input" id="d-sheet-id"
+                            placeholder="https://script.google.com/macros/s/..."
+                            style="margin: 0.75rem 0; font-family: monospace; font-size: 0.85rem;">
+
+                        <div class="setting-item"
+                            style="margin-top: 1rem; border-top: 1px dashed var(--pink-100); padding-top: 1rem;">
+                            <div>
+                                <div class="setting-label">Google Sheet Link 🌐</div>
+                                <div class="setting-desc">วางลิงก์ Google Sheet เพื่อกดเปิดดูข้อมูลได้ทันที</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.75rem;">
+                            <input type="text" class="form-input" id="d-sheet-url"
+                                placeholder="https://docs.google.com/spreadsheets/d/..."
+                                style="margin: 0; flex: 1; font-size: 0.85rem;" oninput="saveSheetUrl('d')">
+                            <button class="btn" style="padding: 12px; background: #4285f4; color: white;"
+                                onclick="openGoogleSheet()">
+                                🚀
+                            </button>
+                        </div>
+
+                        <div class="setting-item">
+                            <div class="setting-label">สถานะ</div>
+                            <span class="status-badge disconnected" id="d-conn-status">ยังไม่เชื่อมต่อ</span>
+                        </div>
+                        <button class="btn btn-primary"
+                            style="width: 100%; margin-top: 0.75rem; background: #0f9d58; border: none;"
+                            onclick="connectSheets()">🔗 เชื่อมต่อ</button>
+                    </div>
+
+                    <div class="card settings-section">
+                        <h3>⚡ Supabase Database</h3>
+                        <div class="setting-item">
+                            <div class="setting-desc" style="color: #6b7280;">สำรองข้อมูลและรูปภาพขึ้น Cloud (ใช้ร่วมกับ
+                                Google Sheets ได้)</div>
+                        </div>
+                        <div style="margin-top: 1rem;">
+                            <label class="setting-label" style="font-size: 0.85rem;">Project URL</label>
+                            <input type="text" class="form-input" id="d-sb-url" placeholder="https://xyz.supabase.co"
+                                style="font-family: monospace; font-size: 0.85rem;">
+                        </div>
+                        <div style="margin-top: 0.5rem;">
+                            <label class="setting-label" style="font-size: 0.85rem;">API Key (anon/public)</label>
+                            <input type="password" class="form-input" id="d-sb-key" placeholder="eyJhbG..."
+                                style="font-family: monospace; font-size: 0.85rem;">
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-label">สถานะ</div>
+                            <span class="status-badge disconnected" id="d-sb-status">ยังไม่เชื่อมต่อ</span>
+                        </div>
+                        <button class="btn btn-primary" onclick="initSupabase()">🔗 เชื่อมต่อ Supabase</button>
+                    </div>
+
+                    <div class="card settings-section">
+                        <h3>🔐 ความปลอดภัย</h3>
+                        <div class="setting-item">
+                            <div>
+                                <div class="setting-label">รหัสผ่านเข้าใช้งาน (PIN)</div>
+                                <div class="setting-desc">ตั้งรหัส 4 หลักเพื่อล็อคหน้าจอ</div>
+                            </div>
+                            <button id="d-pin-btn" class="btn"
+                                style="background: var(--pink-100); color: var(--pink-600);" onclick="togglePinSetup()">
+                                ตั้งรหัส
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card settings-section">
+                        <h3>🤖 OCR อ่านสลิป</h3>
+                        <div class="setting-item">
+                            <div>
+                                <div class="setting-label">เปิดใช้งาน OCR</div>
+                                <div class="setting-desc">อ่านข้อมูลจากสลิปอัตโนมัติ</div>
+                            </div>
+                            <div class="toggle active" id="d-ocr-toggle" onclick="toggleOCR()"></div>
+                        </div>
+                    </div>
+
+                    <div class="card settings-section">
+                        <h3>💾 ส่งออกข้อมูล</h3>
+                        <button class="btn btn-secondary" style="width: 100%; margin-bottom: 0.75rem;"
+                            onclick="exportCSV()">📥 ส่งออก CSV</button>
+                        <button class="btn btn-danger" style="width: 100%;" onclick="clearData()">🗑️
+                            ล้างข้อมูลทั้งหมด</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ============ MOBILE LAYOUT ============ -->
+    <div class="mobile-layout">
+        <div class="m-header">
+            <div class="m-logo">
+                <img src="Hello-Kitty-Logo.png" alt="">
+                <span>TING</span>
+            </div>
+            <span style="color: var(--pink-400); font-size: 0.9rem;">🎀 สลิป</span>
+        </div>
+
+
+
+        <div id="m-home" class="m-section active">
+            <div class="m-stats">
+                <div class="m-stat">
+                    <div class="m-stat-emoji">🌷</div>
+                    <div class="m-stat-value" id="m-income">฿0</div>
+                    <div class="m-stat-label">รายรับ</div>
+                </div>
+                <div class="m-stat">
+                    <div class="m-stat-emoji">🛍️</div>
+                    <div class="m-stat-value" id="m-expense">฿0</div>
+                    <div class="m-stat-label">รายจ่าย</div>
+                </div>
+                <div class="m-stat" style="background: #fdf2f8; border: 1px solid #fbcfe8;">
+                    <div class="m-stat-emoji">💎</div>
+                    <div class="m-stat-value" id="m-profit-total" style="color: #db2777;">฿0</div>
+                    <div class="m-stat-label" style="color: #be185d;">กำไรสุทธิ</div>
+                </div>
+                <div class="m-stat">
+                    <div class="m-stat-emoji">✨</div>
+                    <div class="m-stat-value" id="m-count">0</div>
+                    <div class="m-stat-label">สลิป</div>
+                </div>
+            </div>
+
+            <!-- Mobile Shop Stats (NEW) -->
+            <div class="m-card" style="margin-top: 1rem; margin-bottom: 1rem;">
+                <h4 style="margin-bottom: 0.75rem; color: var(--pink-500);">🏆 ร้านค้ายอดขายดี</h4>
+                <div id="m-shop-stats" style="display: flex; gap: 0.75rem; overflow-x: auto; padding-bottom: 0.5rem;">
+                    <div class="empty-box" style="padding: 1rem; width: 100%;">ไม่มีข้อมูล</div>
+                </div>
+            </div>
+            <div class="m-card">
+                <h4 style="margin-bottom: 0.75rem; color: var(--pink-500);">📋 ล่าสุด</h4>
+                <div id="m-recent">
+                    <div class="empty-box" style="padding: 2rem;">
+                        <div class="emoji" style="font-size: 3rem;">💭</div>
+                        <p>ยังไม่มีรายการ</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="m-shop-empty"
+            style="text-align: center; color: #9ca3af; padding: 1rem; font-size: 0.9rem; display: none;">
+            ยังไม่มีร้านค้า
+        </div>
+
+        <!-- NEW: Mobile Calendar Section -->
+        <div id="m-calendar" class="m-section">
+            <div class="m-card">
+                <div class="calendar-header"
+                    style="flex-direction: column; align-items: stretch; gap: 1rem; margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h2 class="calendar-title" style="font-size: 1.25rem; margin: 0;">📅 ปฏิทิน</h2>
+                    </div>
+
+                    <div class="calendar-nav" style="justify-content: space-between;">
+                        <button class="calendar-nav-btn" onclick="changeCalendarMonth(-1)">❮</button>
+                        <h3 id="m-current-month-display" style="font-size: 1.1rem; margin: 0;">มกราคม 2569</h3>
+                        <button class="calendar-nav-btn" onclick="changeCalendarMonth(1)">❯</button>
+                    </div>
+                    <div style="text-align: center; color: var(--text-muted); font-size: 0.9rem;"
+                        id="m-calendar-summary">
+                        รายรับ: ฿0
+                    </div>
+                </div>
+
+                <div class="calendar-grid" id="m-calendar-grid" style="gap: 4px;">
+                    <!-- Header Days -->
+                    <div class="calendar-day-header" style="font-size: 0.8rem; padding: 2px;">อา.</div>
+                    <div class="calendar-day-header" style="font-size: 0.8rem; padding: 2px;">จ.</div>
+                    <div class="calendar-day-header" style="font-size: 0.8rem; padding: 2px;">อ.</div>
+                    <div class="calendar-day-header" style="font-size: 0.8rem; padding: 2px;">พ.</div>
+                    <div class="calendar-day-header" style="font-size: 0.8rem; padding: 2px;">พฤ.</div>
+                    <div class="calendar-day-header" style="font-size: 0.8rem; padding: 2px;">ศ.</div>
+                    <div class="calendar-day-header" style="font-size: 0.8rem; padding: 2px;">ส.</div>
+                    <!-- Grid populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <div id="m-add" class="m-section">
+            <div class="m-card">
+                <div class="m-upload-zone" id="m-dropzone">
+                    <div class="emoji">🎀</div>
+                    <h4>แตะเพื่อเลือกรูปสลิป</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">เลือกได้ทีละหลายใบ 💖</p>
+                    <input type="file" id="m-file" accept="image/*" multiple capture="environment" hidden>
+                    <div class="m-btns">
+                        <button class="btn btn-primary" onclick="document.getElementById('m-file').click()">🌸
+                            เลือกหลายรูป</button>
+                    </div>
+                </div>
+
+                <!-- Batch Review Mobile -->
+                <div id="m-batch-container" class="hidden" style="margin-top: 1rem;">
+                    <div class="batch-title-bar"
+                        style="flex-direction: column; gap: 1rem; align-items: stretch; padding: 1.25rem;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <h3 style="margin:0; color:var(--pink-600); font-size: 1.1rem; font-weight: 800;">
+                                    ตรวจสอบสลิปแบบกลุ่ม</h3>
+                                <div style="font-size: 0.8rem; color: var(--pink-400); font-weight: 600;">(<span
+                                        id="m-batch-count">0</span> ใบ)</div>
+                            </div>
+                            <div style="font-size: 1.5rem;">📑</div>
+                        </div>
+
+                        <div class="batch-apply-section"
+                            style="margin-right:0; justify-content: center; background: var(--pink-50); padding: 1rem; border-radius: 20px; border: 1px solid var(--pink-100); gap: 10px;">
+                            <div class="batch-apply-label" style="align-items: center; margin-right: 5px;">
+                                <span style="font-size: 0.75rem;">ใช้ใบแรก</span>
+                                <span style="font-size: 0.75rem;">ทั้งหมด:</span>
+                            </div>
+                            <button class="btn-icon-box" onclick="applyBatchAll('shop')">
+                                <span>🏪</span>
+                                <span>ร้าน</span>
+                            </button>
+                            <button class="btn-icon-box" onclick="applyBatchAll('shipping')">
+                                <span>🚚</span>
+                                <span>ส่ง</span>
+                            </button>
+                            <button class="btn-icon-box" onclick="applyBatchAll('cost')">
+                                <span>💰</span>
+                                <span>ทุน</span>
+                            </button>
+                        </div>
+
+                        <div class="batch-main-actions"
+                            style="display: grid; grid-template-columns: 1fr 3fr; gap: 0.75rem;">
+                            <button class="btn-big-box outline" style="height: 60px; min-width: auto;"
+                                onclick="resetUpload()">
+                                <span style="font-size: 1.25rem;">✕</span>
+                                <span style="font-size: 0.8rem;">ยกเลิก</span>
+                            </button>
+                            <button class="btn-big-box primary" style="height: 60px; width: 100%;"
+                                onclick="saveAllBatch()" id="m-batch-save-btn">
+                                <span style="font-size: 1.25rem;">💾</span>
+                                <span style="font-size: 0.8rem;">บันทึกทั้งหมด</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="m-batch-list" class="batch-review-container"></div>
+                </div>
+
+                <div class="preview-box" id="m-preview">
+                    <img src="" alt="Preview" id="m-preview-img">
+                    <div class="ocr-status" id="m-ocr-status">⏳ กำลังอ่านสลิป...</div>
+                    <button class="btn btn-secondary" onclick="resetUpload()" style="width: 100%; margin-top: 1rem;">❌
+                        ลบรูป</button>
+                </div>
+
+                <div class="form-box" id="m-form" style="display: none; margin-top: 1.5rem; padding: 0;">
+                    <h4 style="margin-bottom: 1rem; color: var(--pink-500);">✏️ ข้อมูลสลิป</h4>
+
+                    <div class="form-group">
+                        <label class="form-label">ประเภท</label>
+                        <div class="selector-row">
+                            <button type="button" class="selector-btn active income" data-type="income">
+                                <span>🌷</span> รายรับ
+                            </button>
+                            <button type="button" class="selector-btn expense" data-type="expense">
+                                <span>🛍️</span> รายจ่าย
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">🏪 ร้านค้า</label>
+                        <select class="form-input" id="m-shop-select">
+                            <option value="">-- ไม่ระบุ --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">ยอดโอน</label>
+                            <input type="number" class="form-input" id="m-amount" placeholder="0.00" step="0.01"
+                                oninput="calculateProfit('m')">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">วันที่</label>
+                            <input type="date" class="form-input" id="m-date">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">📦 รายการสินค้า</label>
+                        <textarea class="form-input" id="m-items" rows="2" placeholder="รายการสินค้า..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">🚚 ค่าส่ง</label>
+                        <div style="display: flex; gap: 5px;">
+                            <select id="m-shipping-select" class="form-input"
+                                style="flex: 1; min-width: 0; padding-right: 20px; font-size: 0.9rem;"
+                                onchange="applyShippingOption('m')">
+                                <option value="">-- เลือก --</option>
+                            </select>
+                            <input type="number" class="form-input" id="m-shipping" placeholder="0"
+                                oninput="calculateProfit('m')" style="flex: 1; min-width: 0;">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">💰 ต้นทุน</label>
+                        <div style="display: flex; gap: 5px;">
+                            <select id="m-cost-select" class="form-input"
+                                style="flex: 1; min-width: 0; padding-right: 20px; font-size: 0.9rem;"
+                                onchange="applyCostOption('m')">
+                                <option value="">-- เลือก --</option>
+                            </select>
+                            <input type="number" class="form-input" id="m-cost" placeholder="0"
+                                oninput="calculateProfit('m')" style="flex: 1; min-width: 0;">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">💎 กำไร</label>
+                        <input type="number" class="form-input" id="m-profit" placeholder="0" readonly
+                            style="background: #fce7f3; color: #db2777; font-weight: bold;">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">ชื่อผู้โอน</label>
+                        <input type="text" class="form-input" id="m-sender" placeholder="ชื่อผู้โอน">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">ชื่อผู้รับ</label>
+                        <input type="text" class="form-input" id="m-receiver" placeholder="ชื่อผู้รับ">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">ธนาคาร</label>
+                        <select class="form-input" id="m-bank">
+                            <option value="">เลือกธนาคาร</option>
+                            <option value="กสิกรไทย">🟢 กสิกรไทย</option>
+                            <option value="ไทยพาณิชย์">🟣 ไทยพาณิชย์</option>
+                            <option value="กรุงไทย">🔵 กรุงไทย</option>
+                            <option value="กรุงเทพ">🔵 กรุงเทพ</option>
+                            <option value="พร้อมเพย์">💳 พร้อมเพย์</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">หมายเหตุ</label>
+                        <input type="text" class="form-input" id="m-note" placeholder="รายละเอียดเพิ่มเติม...">
+                    </div>
+
+                    <button class="btn btn-primary" onclick="saveTransaction()" style="width: 100%;">💾 บันทึก</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="m-list" class="m-section">
+            <div class="m-card">
+                <h4 style="margin-bottom: 0.75rem; color: var(--pink-500);">📋 รายการทั้งหมด</h4>
+                <div id="m-all">
+                    <div class="empty-box" style="padding: 2rem;">
+                        <div class="emoji" style="font-size: 3rem;">💭</div>
+                        <p>ยังไม่มีรายการ</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="m-set" class="m-section">
+            <div class="m-card">
+                <h4 style="margin-bottom: 1rem; color: var(--pink-500);">⚙️ ตั้งค่าระบบ</h4>
+
+                <details style="margin-bottom: 1rem; border: 1px solid #fbcfe8; border-radius: 10px; padding: 0.5rem;">
+                    <summary style="cursor: pointer; font-weight: bold; color: #db2777; padding: 0.5rem;">🏪
+                        จัดการร้านค้า</summary>
+                    <div
+                        style="padding: 1rem 0.5rem 0.5rem 0.5rem; border-top: 1px dashed #fbcfe8; margin-top: 0.5rem;">
+                        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                            <input type="text" class="form-input" id="m-new-shop-name" placeholder="ชื่อร้าน...">
+                            <button class="btn btn-primary" onclick="addShop()" style="flex: 0 0 60px;">เพิ่ม</button>
+                        </div>
+                        <div id="m-shop-list" style="display: flex; gap: 0.5rem; flex-wrap: wrap;"></div>
+                    </div>
+                </details>
+
+                <details style="margin-bottom: 1rem; border: 1px solid #bbf7d0; border-radius: 10px; padding: 0.5rem;">
+                    <summary style="cursor: pointer; font-weight: bold; color: #166534; padding: 0.5rem;">🚚 ตั้งค่าส่ง
+                    </summary>
+                    <div
+                        style="padding: 1rem 0.5rem 0.5rem 0.5rem; border-top: 1px dashed #bbf7d0; margin-top: 0.5rem;">
+                        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                            <input type="text" class="form-input" id="m-new-shipping-name" placeholder="ชื่อ (EMS)..."
+                                style="flex: 2;">
+                            <input type="number" class="form-input" id="m-new-shipping-price" placeholder="฿"
+                                style="flex: 1;">
+                            <button class="btn" onclick="addShippingMobile()"
+                                style="flex: 0 0 50px; background: #22c55e; color: white;">+</button>
+                        </div>
+                        <div id="m-shipping-list" style="display: flex; gap: 0.5rem; flex-wrap: wrap;"></div>
+                    </div>
+                </details>
+
+                <details style="margin-bottom: 1rem; border: 1px solid #fed7aa; border-radius: 10px; padding: 0.5rem;">
+                    <summary style="cursor: pointer; font-weight: bold; color: #9a3412; padding: 0.5rem;">💰 ตั้งต้นทุน
+                    </summary>
+                    <div
+                        style="padding: 1rem 0.5rem 0.5rem 0.5rem; border-top: 1px dashed #fed7aa; margin-top: 0.5rem;">
+                        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                            <input type="text" class="form-input" id="m-new-cost-name" placeholder="ชื่อ (กล่อง)..."
+                                style="flex: 2;">
+                            <input type="number" class="form-input" id="m-new-cost-price" placeholder="฿"
+                                style="flex: 1;">
+                            <button class="btn" onclick="addCostOptionMobile()"
+                                style="flex: 0 0 50px; background: #f97316; color: white;">+</button>
+                        </div>
+                        <div id="m-cost-list" style="display: flex; gap: 0.5rem; flex-wrap: wrap;"></div>
+                    </div>
+                </details>
+            </div>
+
+            <div class="m-card">
+                <h4 style="margin-bottom: 1rem; color: var(--pink-500);">🔐 ความปลอดภัย</h4>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>รหัส PIN ล็อคหน้าจอ</span>
+                    <button id="m-pin-btn" class="btn"
+                        style="background: var(--pink-100); color: var(--pink-600); padding: 5px 15px;"
+                        onclick="togglePinSetup()">ตั้งรหัส</button>
+                </div>
+            </div>
+
+            <div class="m-card">
+                <h4 style="margin-bottom: 1rem; color: #3ecf8e;">⚡ Supabase Cloud</h4>
+                <div class="setting-label" style="font-size: 0.8rem; margin-bottom: 4px;">Project URL</div>
+                <input type="text" class="form-input" id="m-sb-url" placeholder="https://xyz.supabase.co"
+                    style="margin-bottom: 0.5rem;">
+
+                <div class="setting-label" style="font-size: 0.8rem; margin-bottom: 4px;">API Key (anon)</div>
+                <input type="password" class="form-input" id="m-sb-key" placeholder="eyJhbG..."
+                    style="margin-bottom: 1rem;">
+
+                <button class="btn btn-primary" style="width: 100%; background: #3ecf8e; border: none;"
+                    onclick="initSupabase()">🔗 เชื่อมต่อ Supabase</button>
+            </div>
+
+            <div class="m-card">
+                <h4 style="margin-bottom: 1rem; color: var(--pink-500);">📊 Google Sheets</h4>
+                <div class="setting-label" style="font-size: 0.8rem; margin-bottom: 4px;">Apps Script URL</div>
+                <input type="text" class="form-input" id="m-sheet-id" placeholder="https://script.google.com/..."
+                    style="margin-bottom: 1rem;">
+
+                <div class="setting-label" style="font-size: 0.8rem; margin-bottom: 4px;">Sheet Link 🌐</div>
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                    <input type="text" class="form-input" id="m-sheet-url" placeholder="https://docs.google.com/..."
+                        style="flex: 1; margin: 0; font-size: 0.9rem;" oninput="saveSheetUrl('m')">
+                    <button class="btn" onclick="openGoogleSheet()"
+                        style="background: #4285f4; color: white; padding: 0 15px;">🚀</button>
+                </div>
+
+                <button class="btn btn-primary" style="width: 100%;" onclick="connectSheets()">🔗 เชื่อมต่อ</button>
+            </div>
+            <div class="m-card">
+                <h4 style="margin-bottom: 1rem; color: var(--pink-500);">💾 ข้อมูล</h4>
+                <button class="btn btn-secondary" style="width: 100%; margin-bottom: 0.5rem;" onclick="exportCSV()">📥
+                    ส่งออก CSV</button>
+                <button class="btn btn-danger" style="width: 100%;" onclick="clearData()">🗑️ ล้างข้อมูล</button>
+            </div>
+        </div>
+        <div class="m-tabs">
+            <button class="m-tab active" data-mtab="m-home"><span>🏠</span>หน้าหลัก</button>
+            <button class="m-tab" data-mtab="m-add"><span>🌸</span>เพิ่ม</button>
+            <button class="m-tab" data-mtab="m-list"><span>📝</span>รายการ</button>
+            <button class="m-tab" data-mtab="m-calendar"><span>📅</span>ปฏิทิน</button>
+            <button class="m-tab" data-mtab="m-set"><span>💝</span>ตั้งค่า</button>
+        </div>
+    </div>
+
+    <!-- Transaction Edit Modal -->
+    <div id="tx-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>✏️ แก้ไขรายการ</h3>
+                <button class="close-btn" onclick="closeTxModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="edit-id">
+                <div class="form-group">
+                    <label>ประเภท</label>
+                    <select id="edit-type" class="form-control">
+                        <option value="income">🌷 รายรับ</option>
+                        <option value="expense">🛍️ รายจ่าย</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>ร้านค้า</label>
+                    <select id="edit-shop" class="form-control">
+                        <option value="">-- ไม่ระบุ --</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>วันที่</label>
+                        <input type="date" id="edit-date" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>จำนวนเงิน</label>
+                        <input type="number" id="edit-amount" class="form-control" step="0.01">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>ผู้โอน</label>
+                        <input type="text" id="edit-sender" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>ผู้รับ</label>
+                        <input type="text" id="edit-receiver" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>ธนาคาร</label>
+                    <select id="edit-bank" class="form-control">
+                        <!-- Options will be populated by JS -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>หมายเหตุ</label>
+                    <textarea id="edit-note" class="form-control" rows="2"></textarea>
+                </div>
+
+                <hr style="margin: 15px 0; border: 0; border-top: 1px dashed var(--pink-300);">
+
+                <div class="form-group">
+                    <label>รายการสินค้า</label>
+                    <textarea id="edit-items" class="form-control" rows="2"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>ค่าส่ง</label>
+                        <input type="number" id="edit-shipping" class="form-control" step="0.01"
+                            oninput="calculateEditProfit()">
+                    </div>
+                    <div class="form-group">
+                        <label>ต้นทุน</label>
+                        <input type="number" id="edit-cost" class="form-control" step="0.01"
+                            oninput="calculateEditProfit()">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>💎 กำไรสุทธิ</label>
+                    <input type="number" id="edit-profit" class="form-control" readonly
+                        style="background: var(--pink-100);">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="deleteTransaction()">🗑️ ลบ</button>
+                <button class="btn btn-primary" onclick="saveEditTransaction()">💾 บันทึก</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(131, 24, 67, 0.2);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 32px;
+            border-radius: 32px;
+            width: 90%;
+            max-width: 480px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(236, 72, 153, 0.25);
+            transform: translateY(40px) scale(0.95);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 4px solid #fff;
+        }
+
+        .modal-overlay.show .modal-content {
+            transform: translateY(0) scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px dashed var(--pink-100);
+        }
+
+        .modal-header h3 {
+            font-size: 1.5rem;
+            color: var(--pink-600);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .close-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--pink-50);
+            border: none;
+            color: var(--pink-400);
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            background: var(--pink-100);
+            color: var(--pink-600);
+            transform: rotate(90deg);
+        }
+
+        .modal-body .form-group {
+            margin-bottom: 16px;
+        }
+
+        .modal-body label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-light);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .modal-body .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--pink-100);
+            border-radius: 16px;
+            font-family: inherit;
+            font-size: 1rem;
+            color: var(--text);
+            transition: all 0.3s;
+            background: var(--pink-50);
+        }
+
+        .modal-body .form-control:focus {
+            outline: none;
+            border-color: var(--pink-400);
+            background: #fff;
+            box-shadow: 0 0 0 4px var(--pink-100);
+        }
+
+        .modal-body textarea.form-control {
+            border-radius: 20px;
+            resize: vertical;
+        }
+
+        .modal-footer {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 16px;
+            margin-top: 32px;
+            padding-top: 20px;
+            border-top: 2px dashed var(--pink-100);
+        }
+
+        .modal-footer button {
+            padding: 12px;
+            border-radius: 16px;
+            border: none;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-danger {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+
+        .btn-danger:hover {
+            background: #fecaca;
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--pink-400), var(--pink-600));
+            color: white;
+            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(236, 72, 153, 0.4);
+        }
+
+        /* Form Row for Modal */
+        .modal-body .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        /* Customize Scrollbar in Modal */
+        .modal-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .modal-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb {
+            background: var(--pink-200);
+            border-radius: 10px;
+        }
+    </style>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="app-desktop.js?v=2"></script>
+    <!-- 🔐 Lock Screen System -->
+    <div id="lock-screen" class="lock-overlay hidden">
+        <div class="lock-content">
+            <div class="lock-logo">
+                <img src="Hello-Kitty-Logo.png" alt="Logo" style="width: 80px; height: 80px; object-fit: contain;">
+                <h2 style="color: var(--pink-600); margin: 10px 0;">TING HC</h2>
+                <p style="color: var(--pink-400);">กรุณาใส่รหัสผ่าน 🔒</p>
+            </div>
+
+            <div class="pin-display" id="pin-dots">
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+            </div>
+
+            <div class="pin-keypad">
+                <button class="pin-btn" onclick="enterPin(1)">1</button>
+                <button class="pin-btn" onclick="enterPin(2)">2</button>
+                <button class="pin-btn" onclick="enterPin(3)">3</button>
+                <button class="pin-btn" onclick="enterPin(4)">4</button>
+                <button class="pin-btn" onclick="enterPin(5)">5</button>
+                <button class="pin-btn" onclick="enterPin(6)">6</button>
+                <button class="pin-btn" onclick="enterPin(7)">7</button>
+                <button class="pin-btn" onclick="enterPin(8)">8</button>
+                <button class="pin-btn" onclick="enterPin(9)">9</button>
+                <button class="pin-btn empty"></button>
+                <button class="pin-btn" onclick="enterPin(0)">0</button>
+                <button class="pin-btn delete" onclick="deletePin()">⌫</button>
+            </div>
+
+            <button onclick="forgotPin()"
+                style="margin-top: 20px; background: none; border: none; color: var(--pink-400); font-size: 0.9rem; cursor: pointer; text-decoration: underline;">ลืมรหัสผ่าน?</button>
+        </div>
+    </div>
+</body>
+
+</html>
