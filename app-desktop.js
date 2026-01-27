@@ -1886,14 +1886,57 @@ loadConfig().then(() => {
             if (!window.sbClient) return;
 
             // Delete all logic (requires proper RLS or specific logic)
-            // Using 'neq' id '0' is a hack, usually we just delete where user_id matches or something.
-            // But since we are Anon, check policy.
             const { error } = await window.sbClient.from('transactions').delete().neq('id', '00000000-0000-0000-0000-000000000000'); // Delete everything
             if (error) {
                 console.error('Supabase Clear Error:', error);
                 alert('⚠️ ล้างข้อมูล Supabase ไม่สำเร็จ: ' + error.message);
             } else {
                 console.log('✅ All Data Cleared from Supabase');
+            }
+        },
+
+        async fetchTransactions() {
+            if (!window.sbClient) await this.init();
+            if (!window.sbClient) return;
+
+            console.log('🔄 Fetching from Supabase...');
+            const { data, error } = await window.sbClient.from('transactions').select('*');
+            if (error) {
+                console.error('Supabase Fetch Error:', error);
+                showToast('ดึงข้อมูลจาก Cloud ไม่สำเร็จ', 'error');
+                return;
+            }
+
+            if (data && data.length > 0) {
+                // Map Supabase Data -> Local Format
+                const mapped = data.map(dbT => ({
+                    id: dbT.id || genId(), // ใช้ UUID หรือ Gen ใหม่ถ้าไม่มี
+                    date: dbT.date,
+                    type: dbT.type,
+                    amount: dbT.amount,
+                    senderName: dbT.sender_name,
+                    receiverName: dbT.receiver_name,
+                    bank: dbT.bank,
+                    shop: dbT.shop,
+                    note: dbT.note,
+                    items: dbT.items,
+                    shipping: dbT.shipping,
+                    cost: dbT.cost,
+                    profit: dbT.profit,
+                    image_url: dbT.image_url,
+                    supabase_id: dbT.id, // สำคัญ: เก็บ Link ไว้ด้วย
+                    createdAt: dbT.created_at
+                }));
+
+                // Strategy: Merge? Or Replace?
+                // ถ้าบน Cloud มีข้อมูล และในเครื่องไม่มี -> ใช้ของ Cloud เลย
+                // ถ้ามีทั้งคู่ -> เอาของ Cloud ทับ (ถือเป็น Master)
+                store.transactions = mapped;
+                store.save();
+                updateDashboard();
+                showToast(`☁️ โหลดข้อมูลจาก Database สำเร็จ (${data.length} รายการ)`);
+            } else {
+                console.log('☁️ Database is empty.');
             }
         }
     };
@@ -1915,9 +1958,12 @@ loadConfig().then(() => {
         showToast('บันทึกการตั้งค่าแล้ว (โปรดรีเฟรชถ้ายังไม่เชื่อมต่อ)', 'success');
     }
 
-    // Auto Init
-    // Auto Init (Run immediately)
-    SupabaseService.init();
+        // Auto Init & Fetch
+        (async () => {
+            await SupabaseService.init();
+            // ดึงข้อมูลเมื่อเปิดแอพ
+            await SupabaseService.fetchTransactions();
+        })();
 
 });
 
