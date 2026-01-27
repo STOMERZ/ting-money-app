@@ -1249,13 +1249,14 @@ async function saveTransaction() {
                 } else {
                     await appendToSheet(null, transaction);
                 }
-                showToast('บันทึกและซิงค์ Sheets สำเร็จ! 🎉');
+                showToast('บันทึกสำเร็จ! 🎉');
             } catch (e) {
-                console.error(e);
-                showToast('บันทึกแล้ว (แต่ Sheets ไม่ไป)', 'error');
+                console.error('Sheet Sync Error (Ignored):', e);
+                // User requested to remove the error toast
+                showToast('บันทึกสำเร็จ! 🎉');
             }
         } else {
-            showToast('บันทึกสำเร็จ! (ไม่ได้เชื่อม Sheets)');
+            showToast('บันทึกสำเร็จ! 🎉');
         }
 
         resetUpload();
