@@ -19,10 +19,10 @@ let appConfig = {
     slipApiUrl: 'https://slip-c.oiioioiiioooioio.download',
     // 🔐 Hardcoded Credentials
     supabaseUrl: 'https://gvxgqkqvtlgkehceyidi.supabase.co',
-    supabaseKey: 'sb_publishable_Opf4rYZYz1qEbwAxHBTB1Q_2RUdGDxM',
+    supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd2eGdxa3F2dGxna2VoY2V5aWRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk1MDI5MjQsImV4cCI6MjA4NTA3ODkyNH0.avXROBgh7ODwOztl4xKBoQndTnTWW3wb-B1OsX_RJf4',
     sheetUrl: 'https://script.google.com/macros/s/AKfycbylTV-a9oQ8QDvnxdnMGffjCkTqUGt8X0BGE1dEcp12r0UarlVgCdBOssc46ZRPxwuY/exec',
-    sheetUrl: 'https://script.google.com/macros/s/AKfycbylTV-a9oQ8QDvnxdnMGffjCkTqUGt8X0BGE1dEcp12r0UarlVgCdBOssc46ZRPxwuY/exec',
-    sheetId: '1ukjvu-SGAPhtqk0IydRAa6BIs14Fumq3kpUiHXt2uYY',
+    sheetUrl: '',
+    sheetId: '',
     defaultPin: '0990' // 🔐 Hardcoded PIN
 };
 
