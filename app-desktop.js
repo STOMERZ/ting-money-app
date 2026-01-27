@@ -29,7 +29,9 @@ async function loadConfig() {
     try {
         const response = await fetch('config.json');
         if (response.ok) {
-            appConfig = await response.json();
+            const loaded = await response.json();
+            // Merge loaded config with existing (hardcoded) config to preserve credentials
+            appConfig = { ...appConfig, ...loaded };
             console.log('✅ Config loaded:', appConfig);
             updateBankDropdown();
         }
