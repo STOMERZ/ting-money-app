@@ -12,10 +12,16 @@ window.calculateProfit = function (prefix) {
 };
 
 // App Config - โหลดจาก config.json
+// App Config - โหลดจาก config.json
 let appConfig = {
     receiver: { name: 'ชนิสรา วู่', displayName: 'น.ส. ชนิสรา วู่' },
     banks: [],
-    slipApiUrl: 'https://slip-c.oiioioiiioooioio.download'
+    slipApiUrl: 'https://slip-c.oiioioiiioooioio.download',
+    // 🔐 Hardcoded Credentials
+    supabaseUrl: 'https://gvxgqkqvtlgkehceyidi.supabase.co',
+    supabaseKey: 'sb_publishable_Opf4rYZYz1qEbwAxHBTB1Q_2RUdGDxM',
+    sheetUrl: 'https://script.google.com/macros/s/AKfycbylTV-a9oQ8QDvnxdnMGffjCkTqUGt8X0BGE1dEcp12r0UarlVgCdBOssc46ZRPxwuY/exec',
+    sheetId: '1ukjvu-SGAPhtqk0IydRAa6BIs14Fumq3kpUiHXt2uYY'
 };
 
 // โหลด config จากไฟล์
@@ -1649,16 +1655,25 @@ function changeCalendarMonth(offset) {
 }
 
 // Initialize
-document.getElementById('d-sheet-id').value = localStorage.getItem('ting_spreadsheet_id') || '';
-document.getElementById('m-sheet-id').value = localStorage.getItem('ting_spreadsheet_id') || '';
-document.getElementById('d-sheet-url').value = localStorage.getItem('ting_sheet_url') || '';
-document.getElementById('m-sheet-url').value = localStorage.getItem('ting_sheet_url') || '';
+// Initialize Google Sheets Inputs & Status
+const sheetId = localStorage.getItem('ting_spreadsheet_id') || appConfig.sheetId || '';
+const sheetUrl = localStorage.getItem('ting_sheet_url') || appConfig.sheetUrl || '';
 
-if (localStorage.getItem('ting_spreadsheet_id')) {
+document.getElementById('d-sheet-id').value = sheetId;
+document.getElementById('m-sheet-id').value = sheetId;
+document.getElementById('d-sheet-url').value = sheetUrl;
+document.getElementById('m-sheet-url').value = sheetUrl;
+
+if (sheetId) {
     const status = document.getElementById('d-conn-status');
     if (status) {
         status.className = 'status-badge connected';
         status.textContent = '✅ เชื่อมต่อแล้ว';
+    }
+    // Also auto-save to local storage if coming from config but not in local
+    if (!localStorage.getItem('ting_spreadsheet_id')) {
+        localStorage.setItem('ting_spreadsheet_id', sheetId);
+        localStorage.setItem('ting_sheet_url', sheetUrl);
     }
 }
 
@@ -1701,19 +1716,30 @@ loadConfig().then(() => {
     const SupabaseService = {
         async init() {
             if (!window.supabase) return;
-            const url = localStorage.getItem('ting_sb_url');
-            const key = localStorage.getItem('ting_sb_key');
+
+            // Priority: LocalStorage -> AppConfig
+            let url = localStorage.getItem('ting_sb_url') || appConfig.supabaseUrl;
+            let key = localStorage.getItem('ting_sb_key') || appConfig.supabaseKey;
 
             if (url && key) {
-                // Force fill inputs if they are empty (Robustness fix)
+                // Force fill inputs if they are empty
                 const ids = ['d-sb-url', 'd-sb-key', 'm-sb-url', 'm-sb-key'];
                 ids.forEach(id => {
                     const el = document.getElementById(id);
-                    if (el && !el.value) { // Only fill if empty
-                        const k = id.includes('url') ? 'ting_sb_url' : 'ting_sb_key';
-                        el.value = localStorage.getItem(k) || '';
+                    if (el) {
+                        // If empty, fill with current active credentials
+                        if (!el.value) {
+                            const k = id.includes('url') ? url : key;
+                            el.value = k;
+                        }
                     }
                 });
+
+                // Save to local storage if using hardcoded config for first time
+                if (!localStorage.getItem('ting_sb_url')) {
+                    localStorage.setItem('ting_sb_url', url);
+                    localStorage.setItem('ting_sb_key', key);
+                }
 
                 try {
                     sbClient = window.supabase.createClient(url, key);
@@ -1947,7 +1973,8 @@ function updatePinButtonUI() {
     }
     if (mBtn) {
         mBtn.textContent = text;
-        // Mobile style adjusted
+        mBtn.style.background = hasPin ? '#fee2e2' : '#dbeafe';
+        mBtn.style.color = hasPin ? '#ef4444' : '#2563eb';
     }
 }
 
