@@ -1918,11 +1918,18 @@ loadConfig().then(() => {
         },
 
         async fetchTransactions() {
-            if (!window.sbClient) await this.init();
-            if (!window.sbClient) return;
+            if (!this.client) await this.init();
+            if (!this.client) return;
+
+            // Subscribe to Realtime (Auto Update)
+            this.subscribeToChanges();
 
             console.log('🔄 Fetching from Supabase...');
-            const { data, error } = await window.sbClient.from('transactions').select('*');
+            const { data, error } = await this.client
+                .from('transactions')
+                .select('*')
+                .order('date', { ascending: false }); // Sort latest first
+
             if (error) {
                 console.error('Supabase Fetch Error:', error);
                 showToast('ดึงข้อมูลจาก Cloud ไม่สำเร็จ', 'error');
@@ -1930,9 +1937,8 @@ loadConfig().then(() => {
             }
 
             if (data && data.length > 0) {
-                // Map Supabase Data -> Local Format
                 const mapped = data.map(dbT => ({
-                    id: dbT.id || genId(), // ใช้ UUID หรือ Gen ใหม่ถ้าไม่มี
+                    id: dbT.id || genId(),
                     date: dbT.date,
                     type: dbT.type,
                     amount: dbT.amount,
@@ -1946,20 +1952,32 @@ loadConfig().then(() => {
                     cost: dbT.cost,
                     profit: dbT.profit,
                     image_url: dbT.image_url,
-                    supabase_id: dbT.id, // สำคัญ: เก็บ Link ไว้ด้วย
+                    supabase_id: dbT.id,
                     createdAt: dbT.created_at
                 }));
 
-                // Strategy: Merge? Or Replace?
-                // ถ้าบน Cloud มีข้อมูล และในเครื่องไม่มี -> ใช้ของ Cloud เลย
-                // ถ้ามีทั้งคู่ -> เอาของ Cloud ทับ (ถือเป็น Master)
                 store.transactions = mapped;
                 store.save();
                 updateDashboard();
-                showToast(`☁️ โหลดข้อมูลจาก Database สำเร็จ (${data.length} รายการ)`);
+                // showToast(`☁️ อัพเดทข้อมูลอัตโนมัติ (${data.length} รายการ)`);
             } else {
                 console.log('☁️ Database is empty.');
             }
+        },
+
+        // Realtime Listener
+        subscribeToChanges() {
+            if (!this.client || this.subscription) return;
+
+            console.log('🔌 Connecting to Realtime...');
+            this.subscription = this.client
+                .channel('public:transactions')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, (payload) => {
+                    console.log('🔔 Realtime Update:', payload);
+                    this.fetchTransactions();
+                    showToast('🔔 มีข้อมูลใหม่มา! กำลังอัพเดท...', 'success');
+                })
+                .subscribe();
         }
     };
 
