@@ -1964,9 +1964,14 @@ loadConfig().then(() => {
     };
 
     // UI Connect Function
+    // UI Connect Function
     window.initSupabase = async function () {
-        const url = document.getElementById('d-sb-url').value.trim() || document.getElementById('m-sb-url').value.trim();
-        const key = document.getElementById('d-sb-key').value.trim() || document.getElementById('m-sb-key').value.trim();
+        let url = document.getElementById('d-sb-url').value.trim() || document.getElementById('m-sb-url').value.trim();
+        let key = document.getElementById('d-sb-key').value.trim() || document.getElementById('m-sb-key').value.trim();
+
+        // Fallback: Use hardcoded config if inputs are empty
+        if (!url && typeof appConfig !== 'undefined') url = appConfig.supabaseUrl;
+        if (!key && typeof appConfig !== 'undefined') key = appConfig.supabaseKey;
 
         if (!url || !key) {
             showToast('กรุณากรอกข้อมูลให้ครบ', 'error');
