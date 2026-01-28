@@ -92,6 +92,7 @@ function addShop() {
     if (!store.settings.shops.includes(name)) {
         store.settings.shops.push(name);
         store.save();
+        if (typeof SupabaseService !== 'undefined') SupabaseService.saveSettings(store.settings);
         renderShopTags();
         updateShopDropdowns();
         showToast('เพิ่มร้านค้าเรียบร้อย ✅');
@@ -102,6 +103,7 @@ function removeShop(name) {
     if (!confirm('ต้องการลบร้าน ' + name + ' ใช่ไหม?')) return;
     store.settings.shops = store.settings.shops.filter(s => s !== name);
     store.save();
+    if (typeof SupabaseService !== 'undefined') SupabaseService.saveSettings(store.settings);
     renderShopTags();
     updateShopDropdowns();
 }
@@ -152,6 +154,7 @@ function addShipping() {
     if (!store.settings.shippingOptions) store.settings.shippingOptions = [];
     store.settings.shippingOptions.push({ name, price });
     store.save();
+    if (typeof SupabaseService !== 'undefined') SupabaseService.saveSettings(store.settings);
     renderShippingTags();
     renderTransactionOptions();
     nameInput.value = '';
@@ -163,6 +166,7 @@ function removeShipping(index) {
     if (!confirm('ต้องการลบรายการนี้ใช่ไหม?')) return;
     store.settings.shippingOptions.splice(index, 1);
     store.save();
+    if (typeof SupabaseService !== 'undefined') SupabaseService.saveSettings(store.settings);
     renderShippingTags();
     renderTransactionOptions();
 }
@@ -196,6 +200,7 @@ function addShippingMobile() {
     if (!store.settings.shippingOptions) store.settings.shippingOptions = [];
     store.settings.shippingOptions.push({ name, price });
     store.save();
+    if (typeof SupabaseService !== 'undefined') SupabaseService.saveSettings(store.settings);
     renderShippingTags();
     renderTransactionOptions();
     nameInput.value = '';
@@ -218,6 +223,7 @@ function addCostOption() {
     if (!store.settings.costOptions) store.settings.costOptions = [];
     store.settings.costOptions.push({ name, price });
     store.save();
+    if (typeof SupabaseService !== 'undefined') SupabaseService.saveSettings(store.settings);
     renderCostTags();
     renderTransactionOptions();
     nameInput.value = '';
@@ -229,6 +235,7 @@ function removeCostOption(index) {
     if (!confirm('ต้องการลบรายการนี้ใช่ไหม?')) return;
     store.settings.costOptions.splice(index, 1);
     store.save();
+    if (typeof SupabaseService !== 'undefined') SupabaseService.saveSettings(store.settings);
     renderCostTags();
     renderTransactionOptions();
 }
@@ -262,6 +269,7 @@ function addCostOptionMobile() {
     if (!store.settings.costOptions) store.settings.costOptions = [];
     store.settings.costOptions.push({ name, price });
     store.save();
+    if (typeof SupabaseService !== 'undefined') SupabaseService.saveSettings(store.settings);
     renderCostTags();
     renderTransactionOptions();
     nameInput.value = '';
@@ -1784,6 +1792,8 @@ loadConfig().then(() => {
     window.sbClient = null;
 
     window.SupabaseService = {
+        SETTINGS_ID: '00000000-0000-0000-0000-000000000000',
+
         async init() {
             if (!window.supabase) return;
 
@@ -1820,7 +1830,6 @@ loadConfig().then(() => {
                         status.className = 'status-badge connected';
                         status.textContent = '✅ เชื่อมต่อแล้ว';
                     }
-                    // Fix: Provide feedback on mobile/load as well
                     const mStatus = document.getElementById('m-sb-status');
                     if (mStatus) {
                         mStatus.className = 'status-badge connected';
@@ -1850,17 +1859,13 @@ loadConfig().then(() => {
         },
 
         async saveTransaction(transaction, imageUrl) {
-            // Check connection first
-            if (!window.sbClient) {
-                await this.init(); // Try to init if missing
-            }
+            if (!window.sbClient) await this.init();
             if (!window.sbClient) {
                 alert("❌ Supabase ยังไม่เชื่อมต่อ! กรุณาไปที่หน้าตั้งค่าและกดเชื่อมต่อ Supabase ก่อนครับ");
                 return null;
             }
 
             const payload = {
-                // id: transaction.id, // Let Supabase gen UUID
                 date: transaction.date,
                 type: transaction.type,
                 amount: transaction.amount,
@@ -1880,10 +1885,7 @@ loadConfig().then(() => {
             const { data, error } = await window.sbClient.from('transactions').insert([payload]).select();
             if (error) {
                 console.error('Supabase Error:', error);
-
-                // Alert with detailed error message
-                let errorMsg = error.message || JSON.stringify(error, null, 2);
-                alert('⚠️ บันทึกไม่สำเร็จ (Supabase Error):\n' + errorMsg);
+                alert('⚠️ บันทึกไม่สำเร็จ (Supabase Error):\n' + error.message);
                 return null;
             } else {
                 console.log('✅ Saved to Supabase');
@@ -1908,13 +1910,41 @@ loadConfig().then(() => {
             if (!window.sbClient) await this.init();
             if (!window.sbClient) return;
 
-            // Delete all logic (requires proper RLS or specific logic)
-            const { error } = await window.sbClient.from('transactions').delete().neq('id', '00000000-0000-0000-0000-000000000000'); // Delete everything
+            // Delete everything EXCEPT Settings Row
+            const { error } = await window.sbClient
+                .from('transactions')
+                .delete()
+                .neq('id', this.SETTINGS_ID);
+
             if (error) {
                 console.error('Supabase Clear Error:', error);
                 alert('⚠️ ล้างข้อมูล Supabase ไม่สำเร็จ: ' + error.message);
             } else {
-                console.log('✅ All Data Cleared from Supabase');
+                console.log('✅ All Data Cleared from Supabase (Settings Preserved)');
+            }
+        },
+
+        // --- NEW: Settings Sync ---
+        async saveSettings(settings) {
+            if (!this.client) {
+                // Silent fail if not connected, or try init
+                await this.init();
+                if (!this.client) return;
+            }
+            try {
+                const payload = {
+                    id: this.SETTINGS_ID,
+                    type: 'system_settings',
+                    date: '2000-01-01',
+                    amount: 0,
+                    note: JSON.stringify(settings),
+                    sender_name: 'SYSTEM_SETTINGS'
+                };
+                const { error } = await this.client.from('transactions').upsert(payload);
+                if (error) throw error;
+                // showToast('บันทึกการตั้งค่าลง Cloud แล้ว ☁️');
+            } catch (e) {
+                console.error('Save Settings Error:', e);
             }
         },
 
@@ -1922,7 +1952,6 @@ loadConfig().then(() => {
             if (!this.client) await this.init();
             if (!this.client) return;
 
-            // Try Subscribe to Realtime (Auto Update)
             try {
                 this.subscribeToChanges();
             } catch (e) {
@@ -1938,44 +1967,72 @@ loadConfig().then(() => {
 
             if (error) {
                 console.error('Supabase Fetch Error:', error);
-                alert('เกิดข้อผิดพลาด (Error): ' + JSON.stringify(error)); // Show Error Popup
                 showToast('ดึงข้อมูลจาก Cloud ไม่สำเร็จ', 'error');
                 return;
             }
 
-            // showToast('ดึงข้อมูลสำเร็จ', 'success');
-
             if (data && data.length > 0) {
-                const mapped = data.map(dbT => ({
-                    id: dbT.id || genId(),
-                    date: dbT.date,
-                    type: dbT.type,
-                    amount: dbT.amount,
-                    senderName: dbT.sender_name,
-                    receiverName: dbT.receiver_name,
-                    bank: dbT.bank,
-                    shop: dbT.shop,
-                    note: dbT.note,
-                    items: dbT.items,
-                    shipping: dbT.shipping,
-                    cost: dbT.cost,
-                    profit: dbT.profit,
-                    image_url: dbT.image_url,
-                    supabase_id: dbT.id,
-                    createdAt: dbT.created_at
-                }));
+                // 1. Extract Settings
+                const settingsRow = data.find(r => r.id === this.SETTINGS_ID);
+                if (settingsRow && settingsRow.note) {
+                    try {
+                        const cloudSettings = JSON.parse(settingsRow.note);
+                        console.log('⚙️ Found Cloud Settings:', cloudSettings);
+                        // Merge logic
+                        store.settings = { ...store.settings, ...cloudSettings };
+                        store.save();
 
-                store.transactions = mapped;
-                store.save();
-                updateDashboard();
-                showToast(`☁️ อัพเดทข้อมูลแล้ว (${data.length} รายการ)`);
+                        // Update UI
+                        renderShopTags();
+                        updateShopDropdowns();
+                        renderShippingTags();
+                        renderCostTags();
+                        renderTransactionOptions();
+                    } catch (err) {
+                        console.error('Error parsing cloud settings:', err);
+                    }
+                }
+
+                // 2. Filter out settings for Transactions List
+                const realData = data.filter(r => r.id !== this.SETTINGS_ID);
+
+                if (realData.length > 0) {
+                    const mapped = realData.map(dbT => ({
+                        id: dbT.id || genId(),
+                        date: dbT.date,
+                        type: dbT.type,
+                        amount: dbT.amount,
+                        senderName: dbT.sender_name,
+                        receiverName: dbT.receiver_name,
+                        bank: dbT.bank,
+                        shop: dbT.shop,
+                        note: dbT.note,
+                        items: dbT.items,
+                        shipping: dbT.shipping,
+                        cost: dbT.cost,
+                        profit: dbT.profit,
+                        image_url: dbT.image_url,
+                        supabase_id: dbT.id,
+                        createdAt: dbT.created_at
+                    }));
+
+                    store.transactions = mapped;
+                    store.save();
+                    updateDashboard();
+                    showToast(`☁️ อัพเดทข้อมูลแล้ว (${realData.length} รายการ)`);
+                } else {
+                    // Only settings existed, or filtered empty
+                    console.log('☁️ Only settings found (or empty). Clearing transactions.');
+                    store.transactions = [];
+                    store.save();
+                    updateDashboard();
+                }
             } else {
-                // FORCE SYNC EMPTY STATE
+                // Completely Empty
                 console.log('☁️ Database is empty. Clearing local data.');
                 store.transactions = [];
                 store.save();
                 updateDashboard();
-                // showToast('☁️ ซิงค์ข้อมูล: ว่างเปล่า', 'info');
             }
         },
 
