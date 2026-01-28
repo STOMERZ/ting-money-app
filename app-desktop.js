@@ -1919,16 +1919,8 @@ loadConfig().then(() => {
         },
 
         async fetchTransactions() {
-            alert('3. เริ่มฟังก์ชันดึงข้อมูล (Function Start)');
-
             if (!this.client) await this.init();
-            if (!this.client) {
-                alert('Err: Client NULL');
-                return;
-            }
-
-            alert('4. ผ่าน Init (Client OK)');
-            console.log('🔄 Fetching from Supabase... (Attempt)');
+            if (!this.client) return;
 
             // Try Subscribe to Realtime (Auto Update)
             try {
@@ -1937,7 +1929,6 @@ loadConfig().then(() => {
                 console.warn('Realtime Error:', e);
             }
 
-            alert('5. กำลังส่งคำสั่งไป Supabase (Query Start)');
             console.log('🔄 Fetching from Supabase...');
 
             const { data, error } = await this.client
@@ -1952,7 +1943,7 @@ loadConfig().then(() => {
                 return;
             }
 
-            alert('6. สำเร็จ! ได้มาทั้งหมด: ' + (data ? data.length : 0) + ' รายการ');
+            // showToast('ดึงข้อมูลสำเร็จ', 'success');
 
             if (data && data.length > 0) {
                 const mapped = data.map(dbT => ({
@@ -2023,19 +2014,13 @@ loadConfig().then(() => {
 
     // Auto Init & Fetch
     ; (async () => {
-        // TRACING ALERT
-        alert('1. เริ่มต้นระบบ (Start IIFE)');
-
         const run = async () => {
-            alert('2. เรียกคำสั่งดึงข้อมูล (Calling Fetch)');
             try {
-                // Call fetch directly (it will init if needed)
-                // Wait a tiny bit (100ms) to ensure sync
                 setTimeout(async () => {
                     await SupabaseService.fetchTransactions();
-                }, 500);
+                }, 100);
             } catch (e) {
-                alert('Error in IIFE: ' + e);
+                console.error('Auto Fetch Error:', e);
             }
         };
 
