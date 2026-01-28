@@ -1941,7 +1941,7 @@ loadConfig().then(() => {
             }
 
             // Alert Result Count
-            alert('ดึงข้อมูลสำเร็จ! ได้มาทั้งหมด: ' + (data ? data.length : 0) + ' รายการ');
+            // alert('ดึงข้อมูลสำเร็จ! ได้มาทั้งหมด: ' + (data ? data.length : 0) + ' รายการ');
 
             if (data && data.length > 0) {
                 const mapped = data.map(dbT => ({
@@ -2008,14 +2008,21 @@ loadConfig().then(() => {
 
         await SupabaseService.init();
         showToast('บันทึกการตั้งค่าแล้ว (โปรดรีเฟรชถ้ายังไม่เชื่อมต่อ)', 'success');
-    }
+    }; // <--- Added vital semicolon
 
-        // Auto Init & Fetch
-        (async () => {
+    // Auto Init & Fetch
+    ; (async () => { // <--- Added safety semicolon
+        // Wait for window load slightly to ensure Supabase lib is ready
+        if (document.readyState === 'complete') {
             await SupabaseService.init();
-            // ดึงข้อมูลเมื่อเปิดแอพ
             await SupabaseService.fetchTransactions();
-        })();
+        } else {
+            window.addEventListener('load', async () => {
+                await SupabaseService.init();
+                await SupabaseService.fetchTransactions();
+            });
+        }
+    })();
 
 });
 
