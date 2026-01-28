@@ -1921,8 +1921,14 @@ loadConfig().then(() => {
             if (!this.client) await this.init();
             if (!this.client) return;
 
-            // Subscribe to Realtime (Auto Update)
-            this.subscribeToChanges();
+            console.log('🔄 Fetching from Supabase... (Attempt)');
+
+            // Try Subscribe to Realtime (Auto Update)
+            try {
+                this.subscribeToChanges();
+            } catch (e) {
+                console.warn('Realtime Error:', e);
+            }
 
             console.log('🔄 Fetching from Supabase...');
             // ALERT DEBUG
