@@ -2017,16 +2017,27 @@ loadConfig().then(() => {
     }; // <--- Added vital semicolon
 
     // Auto Init & Fetch
-    ; (async () => { // <--- Added safety semicolon
-        // Wait for window load slightly to ensure Supabase lib is ready
+    ; (async () => {
+        // TRACING ALERT
+        alert('1. เริ่มต้นระบบ (Start IIFE)');
+
+        const run = async () => {
+            alert('2. เรียกคำสั่งดึงข้อมูล (Calling Fetch)');
+            try {
+                // Call fetch directly (it will init if needed)
+                // Wait a tiny bit (100ms) to ensure sync
+                setTimeout(async () => {
+                    await SupabaseService.fetchTransactions();
+                }, 500);
+            } catch (e) {
+                alert('Error in IIFE: ' + e);
+            }
+        };
+
         if (document.readyState === 'complete') {
-            await SupabaseService.init();
-            await SupabaseService.fetchTransactions();
+            run();
         } else {
-            window.addEventListener('load', async () => {
-                await SupabaseService.init();
-                await SupabaseService.fetchTransactions();
-            });
+            window.addEventListener('load', run);
         }
     })();
 
