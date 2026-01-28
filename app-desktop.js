@@ -1925,16 +1925,23 @@ loadConfig().then(() => {
             this.subscribeToChanges();
 
             console.log('🔄 Fetching from Supabase...');
+            // ALERT DEBUG
+            // alert('กำลังเริ่มดึงข้อมูล... (Debug)');
+
             const { data, error } = await this.client
                 .from('transactions')
                 .select('*')
-                .order('date', { ascending: false }); // Sort latest first
+                .order('date', { ascending: false });
 
             if (error) {
                 console.error('Supabase Fetch Error:', error);
+                alert('เกิดข้อผิดพลาด (Error): ' + JSON.stringify(error)); // Show Error Popup
                 showToast('ดึงข้อมูลจาก Cloud ไม่สำเร็จ', 'error');
                 return;
             }
+
+            // Alert Result Count
+            alert('ดึงข้อมูลสำเร็จ! ได้มาทั้งหมด: ' + (data ? data.length : 0) + ' รายการ');
 
             if (data && data.length > 0) {
                 const mapped = data.map(dbT => ({
