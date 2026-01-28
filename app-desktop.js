@@ -1968,9 +1968,14 @@ loadConfig().then(() => {
                 store.transactions = mapped;
                 store.save();
                 updateDashboard();
-                // showToast(`☁️ อัพเดทข้อมูลอัตโนมัติ (${data.length} รายการ)`);
+                showToast(`☁️ อัพเดทข้อมูลแล้ว (${data.length} รายการ)`);
             } else {
-                console.log('☁️ Database is empty.');
+                // FORCE SYNC EMPTY STATE
+                console.log('☁️ Database is empty. Clearing local data.');
+                store.transactions = [];
+                store.save();
+                updateDashboard();
+                // showToast('☁️ ซิงค์ข้อมูล: ว่างเปล่า', 'info');
             }
         },
 
