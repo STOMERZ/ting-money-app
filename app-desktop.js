@@ -1812,7 +1812,8 @@ loadConfig().then(() => {
                 }
 
                 try {
-                    window.sbClient = window.supabase.createClient(url, key);
+                    this.client = window.supabase.createClient(url, key);
+                    window.sbClient = this.client;
                     console.log('⚡ Supabase Client Initialized');
                     const status = document.getElementById('d-sb-status');
                     if (status) {
