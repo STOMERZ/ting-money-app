@@ -1918,9 +1918,15 @@ loadConfig().then(() => {
         },
 
         async fetchTransactions() {
-            if (!this.client) await this.init();
-            if (!this.client) return;
+            alert('3. เริ่มฟังก์ชันดึงข้อมูล (Function Start)');
 
+            if (!this.client) await this.init();
+            if (!this.client) {
+                alert('Err: Client NULL');
+                return;
+            }
+
+            alert('4. ผ่าน Init (Client OK)');
             console.log('🔄 Fetching from Supabase... (Attempt)');
 
             // Try Subscribe to Realtime (Auto Update)
@@ -1930,9 +1936,8 @@ loadConfig().then(() => {
                 console.warn('Realtime Error:', e);
             }
 
+            alert('5. กำลังส่งคำสั่งไป Supabase (Query Start)');
             console.log('🔄 Fetching from Supabase...');
-            // ALERT DEBUG
-            // alert('กำลังเริ่มดึงข้อมูล... (Debug)');
 
             const { data, error } = await this.client
                 .from('transactions')
@@ -1946,8 +1951,7 @@ loadConfig().then(() => {
                 return;
             }
 
-            // Alert Result Count
-            // alert('ดึงข้อมูลสำเร็จ! ได้มาทั้งหมด: ' + (data ? data.length : 0) + ' รายการ');
+            alert('6. สำเร็จ! ได้มาทั้งหมด: ' + (data ? data.length : 0) + ' รายการ');
 
             if (data && data.length > 0) {
                 const mapped = data.map(dbT => ({
