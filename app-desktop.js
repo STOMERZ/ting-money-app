@@ -2470,15 +2470,66 @@ window.setSlipMode = function (mode, prefix) {
         }
     }
 
-    // Update Placeholders
-    const senderParams = mode === 'truemoney' ? ['ชื่อผู้โอน / เบอร์โทร', 'เบอร์โทรผู้โอน'] : ['ชื่อผู้โอน', 'ชื่อผู้โอน'];
-    const receiverParams = mode === 'truemoney' ? ['ชื่อผู้รับ / เบอร์โทร', 'เบอร์โทรผู้รับ'] : ['ชื่อผู้รับ', 'ชื่อผู้รับ'];
+    // Update Labels & Placeholders
+    const isTM = mode === 'truemoney';
+    const senderLabel = isTM ? 'เบอร์โทร/ชื่อผู้โอน' : 'ชื่อผู้โอน';
+    const receiverLabel = isTM ? 'เบอร์โทร/ชื่อผู้รับ' : 'ชื่อผู้รับ';
+    const bankLabelStr = isTM ? 'บัญชี/Wallet' : 'ธนาคาร';
 
+    // Update Text Content of Labels
+    const lblSender = document.getElementById(prefix + '-label-sender');
+    const lblReceiver = document.getElementById(prefix + '-label-receiver');
+    const lblBank = document.getElementById(prefix + '-label-bank');
+
+    if (lblSender) lblSender.textContent = senderLabel;
+    if (lblReceiver) lblReceiver.textContent = receiverLabel;
+    if (lblBank) lblBank.textContent = bankLabelStr;
+
+    // Update Placeholders
     const senderInput = document.getElementById(prefix + '-sender');
-    if (senderInput) senderInput.placeholder = senderParams[0];
+    if (senderInput) senderInput.placeholder = isTM ? '081xxxxxxx (หรือชื่อ)' : 'ชื่อผู้โอน';
 
     const receiverInput = document.getElementById(prefix + '-receiver');
-    if (receiverInput) receiverInput.placeholder = receiverParams[0];
+    if (receiverInput) receiverInput.placeholder = isTM ? '081xxxxxxx (หรือชื่อ)' : 'ชื่อผู้รับ';
+
+    // Show/Hide Manual Upload Box
+    const manualBox = document.getElementById(prefix + '-manual-upload-box');
+    if (manualBox) {
+        manualBox.style.display = isTM ? 'block' : 'none';
+    }
 
     console.log(`Switched to ${mode} mode (${prefix})`);
+};
+
+// Handle Manual File Upload (No Scan)
+window.handleManualFile = function (input, prefix) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            currentImage = e.target.result; // Set global image variable for saving
+
+            // Update Preview UI (Thumbnail)
+            const img = document.getElementById(prefix + '-manual-preview');
+            const placeholder = document.getElementById(prefix + '-manual-placeholder');
+
+            if (img) {
+                img.src = currentImage;
+                img.style.display = 'block';
+            }
+            if (placeholder) {
+                placeholder.style.display = 'none';
+            }
+
+            // Update Full Preview UI (Large)
+            const fullImg = document.getElementById(prefix + '-manual-full-preview');
+            const fullContainer = document.getElementById(prefix + '-manual-full-preview-container');
+
+            if (fullImg && fullContainer) {
+                fullImg.src = currentImage;
+                fullContainer.style.display = 'block';
+            }
+        }
+        reader.readAsDataURL(file);
+    }
 };

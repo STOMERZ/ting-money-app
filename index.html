@@ -1209,13 +1209,20 @@
             right: 20px;
             display: flex;
             gap: 0.5rem;
-            background: white;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
             border-radius: 24px;
             padding: 0.5rem;
             margin-bottom: 0;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-            z-index: 1000;
+            z-index: 9999;
             justify-content: space-around;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .m-content {
+            padding: 1rem;
+            padding-bottom: 80px;
         }
 
         .m-tab {
@@ -2032,6 +2039,14 @@
                                     เลือกไฟล์ (เลือกหลายรูปได้)</button>
 
                             </div>
+                            <!-- TrueMoney Manual Trigger -->
+                            <button class="btn"
+                                style="margin-top: 1rem; width: 100%; background: #fff7ed; color: #ea580c; border: 2px dashed #fdba74; font-weight: 700; border-radius: 16px; padding: 12px; transition: all 0.2s;"
+                                onclick="setSlipMode('truemoney', 'd'); document.getElementById('d-form').classList.add('show'); document.getElementById('d-dropzone').classList.add('hidden');"
+                                onmouseover="this.style.background='#ffedd5'"
+                                onmouseout="this.style.background='#fff7ed'">
+                                🟠 กรอก TrueMoney เอง
+                            </button>
                         </div>
 
                         <!-- Batch Review Desktop -->
@@ -2095,19 +2110,32 @@
                     <div class="form-box" id="d-form">
                         <h3 class="form-title">✏️ ข้อมูลสลิป</h3>
 
-                        <!-- Slip Mode Selector -->
-                        <div class="form-group"
-                            style="background: #fdf2f8; padding: 10px; border-radius: 16px; border: 1px dashed #fbcfe8;">
-                            <label class="form-label" style="color: #db2777;">รูปแบบสลิป</label>
-                            <div class="selector-row">
-                                <button type="button" class="selector-btn active" id="d-slip-general"
-                                    onclick="setSlipMode('general', 'd')">
-                                    <span style="font-size: 1.5rem;">🏦</span> ธนาคาร
-                                </button>
-                                <button type="button" class="selector-btn" id="d-slip-truemoney"
-                                    onclick="setSlipMode('truemoney', 'd')">
-                                    <span style="font-size: 1.5rem;">🟠</span> TrueMoney
-                                </button>
+                        <!-- Manual Image Upload (No Scan) - Visible only in manual/TrueMoney mode -->
+                        <div class="form-group" id="d-manual-upload-box"
+                            style="display: none; background: #fffbe6; padding: 10px; border-radius: 12px; border: 1px dashed #fcd34d; margin-bottom: 1.5rem;">
+                            <label class="form-label" style="color: #b45309; margin-bottom: 0.5rem;">📷 แนบรูปสลิป
+                                (บันทึกภาพอย่างเดียว ไม่สแกน)</label>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <div style="width: 60px; height: 60px; background: white; border-radius: 10px; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1px solid #e5e7eb; cursor: pointer;"
+                                    onclick="document.getElementById('d-manual-file').click()">
+                                    <img id="d-manual-preview" src=""
+                                        style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                                    <span id="d-manual-placeholder" style="font-size: 1.5rem; opacity: 0.5;">🖼️</span>
+                                </div>
+                                <div style="flex: 1;">
+                                    <input type="file" id="d-manual-file" accept="image/*" hidden
+                                        onchange="handleManualFile(this, 'd')">
+                                    <button class="btn btn-sm"
+                                        onclick="document.getElementById('d-manual-file').click()"
+                                        style="background: white; border: 1px solid #d1d5db; color: #374151;">เลือกรูป...</button>
+                                    <div style="font-size: 0.75rem; color: #9ca3af; margin-top: 4px;">
+                                        *รูปจะถูกบันทึกไปกับรายการ</div>
+                                </div>
+                            </div>
+                            <!-- Full Preview for Desktop -->
+                            <div id="d-manual-full-preview-container"
+                                style="display:none; margin-top: 10px; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb;">
+                                <img id="d-manual-full-preview" style="width: 100%; display: block;">
                             </div>
                         </div>
 
@@ -2189,17 +2217,17 @@
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label class="form-label">ชื่อผู้โอน</label>
+                                <label class="form-label" id="d-label-sender">ชื่อผู้โอน</label>
                                 <input type="text" class="form-input" id="d-sender" placeholder="ชื่อผู้โอน">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">ชื่อผู้รับ</label>
+                                <label class="form-label" id="d-label-receiver">ชื่อผู้รับ</label>
                                 <input type="text" class="form-input" id="d-receiver" placeholder="ชื่อผู้รับ">
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">ธนาคาร</label>
+                            <label class="form-label" id="d-label-bank">ธนาคาร</label>
                             <select class="form-input" id="d-bank">
                                 <option value="">เลือกธนาคาร</option>
                                 <option value="กสิกรไทย">🟢 กสิกรไทย</option>
@@ -2616,6 +2644,7 @@
         </div>
 
         <div id="m-add" class="m-section">
+
             <div class="m-card">
                 <div class="m-upload-zone" id="m-dropzone">
                     <div class="emoji">🎀</div>
@@ -2626,6 +2655,13 @@
                         <button class="btn btn-primary" onclick="document.getElementById('m-file').click()">🌸
                             เลือกหลายรูป</button>
                     </div>
+                    <!-- TrueMoney Manual Trigger Mobile -->
+                    <button class="btn"
+                        style="margin-top: 1rem; width: 100%; background: #fff7ed; color: #ea580c; border: 2px dashed #fdba74; font-weight: 700; border-radius: 16px; padding: 12px; transition: all 0.2s;"
+                        onclick="setSlipMode('truemoney', 'm'); document.getElementById('m-form').style.display='block'; document.getElementById('m-dropzone').classList.add('hidden');"
+                        onmouseover="this.style.background='#ffedd5'" onmouseout="this.style.background='#fff7ed'">
+                        🟠 กรอก TrueMoney เอง
+                    </button>
                 </div>
 
                 <!-- Batch Review Mobile -->
@@ -2689,19 +2725,28 @@
                 <div class="form-box" id="m-form" style="display: none; margin-top: 1.5rem; padding: 0;">
                     <h4 style="margin-bottom: 1rem; color: var(--pink-500);">✏️ ข้อมูลสลิป</h4>
 
-                    <!-- Slip Mode Selector (Mobile) -->
-                    <div class="form-group"
-                        style="background: #fdf2f8; padding: 10px; border-radius: 16px; border: 1px dashed #fbcfe8;">
-                        <label class="form-label" style="color: #db2777;">รูปแบบสลิป</label>
-                        <div class="selector-row">
-                            <button type="button" class="selector-btn active" id="m-slip-general"
-                                onclick="setSlipMode('general', 'm')">
-                                <span style="font-size: 1.5rem;">🏦</span> ธนาคาร
-                            </button>
-                            <button type="button" class="selector-btn" id="m-slip-truemoney"
-                                onclick="setSlipMode('truemoney', 'm')">
-                                <span style="font-size: 1.5rem;">🟠</span> TrueMoney
-                            </button>
+                    <!-- Manual Image Upload (No Scan) Mobile -->
+                    <div class="form-group" id="m-manual-upload-box"
+                        style="display: none; background: #fffbe6; padding: 10px; border-radius: 12px; border: 1px dashed #fcd34d; margin-bottom: 1.5rem;">
+                        <label class="form-label" style="color: #b45309;">📷 แนบรูป (ไม่สแกน)</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <div style="width: 50px; height: 50px; background: white; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1px solid #e5e7eb; cursor: pointer;"
+                                onclick="document.getElementById('m-manual-file').click()">
+                                <img id="m-manual-preview" src=""
+                                    style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                                <span id="m-manual-placeholder" style="font-size: 1.25rem; opacity: 0.5;">🖼️</span>
+                            </div>
+                            <div style="flex: 1;">
+                                <input type="file" id="m-manual-file" accept="image/*" hidden
+                                    onchange="handleManualFile(this, 'm')">
+                                <button class="btn btn-sm" onclick="document.getElementById('m-manual-file').click()"
+                                    style="width: 100%; background: white; border: 1px solid #d1d5db; color: #374151; font-size: 0.8rem; padding: 6px;">เลือกรูป...</button>
+                            </div>
+                        </div>
+                        <!-- Full Preview for Mobile -->
+                        <div id="m-manual-full-preview-container"
+                            style="display:none; margin-top: 10px; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb;">
+                            <img id="m-manual-full-preview" style="width: 100%; display: block;">
                         </div>
                     </div>
 
@@ -2774,17 +2819,17 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">ชื่อผู้โอน</label>
+                        <label class="form-label" id="m-label-sender">ชื่อผู้โอน</label>
                         <input type="text" class="form-input" id="m-sender" placeholder="ชื่อผู้โอน">
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">ชื่อผู้รับ</label>
+                        <label class="form-label" id="m-label-receiver">ชื่อผู้รับ</label>
                         <input type="text" class="form-input" id="m-receiver" placeholder="ชื่อผู้รับ">
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">ธนาคาร</label>
+                        <label class="form-label" id="m-label-bank">ธนาคาร</label>
                         <select class="form-input" id="m-bank">
                             <option value="">เลือกธนาคาร</option>
                             <option value="กสิกรไทย">🟢 กสิกรไทย</option>
