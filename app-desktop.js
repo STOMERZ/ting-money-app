@@ -61,6 +61,9 @@ function updateBankDropdown() {
     updateSelect('m-bank');
 }
 
+// 🛡️ Upload Session Token to prevent race conditions
+let currentUploadToken = 0;
+
 // Data Store
 const store = {
     transactions: JSON.parse(localStorage.getItem('ting_transactions') || '[]'),
@@ -719,6 +722,10 @@ let isBatchMode = false;
 
 // ============ BATCH UPLOAD LOGIC ============
 async function handleBatchFiles(files) {
+    // 🛡️ Increment Token: New Session
+    currentUploadToken++;
+    const myToken = currentUploadToken;
+
     isBatchMode = true;
     batchFiles = [];
     const filesArray = Array.from(files);
@@ -746,13 +753,19 @@ async function handleBatchFiles(files) {
     mList.innerHTML = '';
 
     for (let i = 0; i < filesArray.length; i++) {
+        // 🛡️ Check Token
+        if (myToken !== currentUploadToken) return;
+
         const file = filesArray[i];
         const reader = new FileReader();
 
         const itemPromise = new Promise((resolve) => {
             reader.onload = (e) => {
+                // 🛡️ Check Token inside callback
+                if (myToken !== currentUploadToken) { resolve(); return; }
+
                 const item = {
-                    id: 'item-' + i,
+                    id: 'item-' + i + '-' + Date.now(), // Unique ID
                     image: e.target.result,
                     amount: 0,
                     date: today(),
@@ -775,6 +788,8 @@ async function handleBatchFiles(files) {
 
     // Process OCR
     for (let i = 0; i < batchFiles.length; i++) {
+        // 🛡️ Check Token before heavy task
+        if (myToken !== currentUploadToken) return;
         await processBatchOCR(i);
     }
 }
@@ -982,8 +997,15 @@ function applyBatchAll(field) {
 }
 
 async function handleFile(file) {
+    // 🛡️ Increment Token: New Session
+    currentUploadToken++;
+    const myToken = currentUploadToken;
+
     const reader = new FileReader();
     reader.onload = async (e) => {
+        // 🛡️ Check Token
+        if (myToken !== currentUploadToken) return;
+
         currentImage = e.target.result;
 
         // Desktop
@@ -1003,7 +1025,10 @@ async function handleFile(file) {
         // 🧹 Reset Shipping & Cost Dropdowns/Inputs
         const resetIds = [
             'd-shipping-select', 'd-cost-select', 'd-shipping', 'd-cost',
-            'm-shipping-select', 'm-cost-select', 'm-shipping', 'm-cost'
+            'm-shipping-select', 'm-cost-select', 'm-shipping', 'm-cost',
+            // Clear text fields to prevent sticky data
+            'd-amount', 'd-sender', 'd-receiver', 'd-bank', 'd-note', 'd-items',
+            'm-amount', 'm-sender', 'm-receiver', 'm-bank', 'm-note', 'm-items'
         ];
         resetIds.forEach(id => {
             const el = document.getElementById(id);
@@ -1013,6 +1038,14 @@ async function handleFile(file) {
         // Recalculate profit (to clear profit field)
         calculateProfit('d');
         calculateProfit('m');
+
+        // Restore Slip Mode (Ensure Bank is set back to TrueMoney if active)
+        if (window.currentSlipMode === 'truemoney') {
+            if (typeof setSlipMode === 'function') {
+                setSlipMode('truemoney', 'd');
+                setSlipMode('truemoney', 'm');
+            }
+        }
 
         // OCR
         if (store.settings.enableOcr) {
@@ -1028,6 +1061,9 @@ async function handleFile(file) {
 
             try {
                 const data = await analyzeSlip(currentImage);
+
+                // 🛡️ Check Token Again after heavy OCR
+                if (myToken !== currentUploadToken) { console.log('🛡️ Stale OCR Result Ignored'); return; }
 
                 console.log('🎯 Final Data:', data);
 
@@ -2399,3 +2435,50 @@ function exportToCSV() {
 
     showToast('ดาวน์โหลด CSV เรียบร้อย! 📂');
 }
+
+// ============ SLIP MODE TOGGLE (General / TrueMoney) ============
+window.currentSlipMode = 'general';
+
+window.setSlipMode = function (mode, prefix) {
+    window.currentSlipMode = mode;
+
+    // Toggle Buttons
+    const btnGeneral = document.getElementById(prefix + '-slip-general');
+    const btnTrueMoney = document.getElementById(prefix + '-slip-truemoney');
+
+    if (btnGeneral) btnGeneral.classList.toggle('active', mode === 'general');
+    if (btnTrueMoney) btnTrueMoney.classList.toggle('active', mode === 'truemoney');
+
+    // Bank Dropdown
+    const bankSelect = document.getElementById(prefix + '-bank');
+    if (bankSelect) {
+        if (mode === 'truemoney') {
+            // Check if TrueMoney option exists, if not add it
+            let hasTrueMoney = false;
+            for (let opt of bankSelect.options) {
+                if (opt.value === 'TrueMoney Wallet') hasTrueMoney = true;
+            }
+            if (!hasTrueMoney) {
+                const opt = document.createElement('option');
+                opt.value = 'TrueMoney Wallet';
+                opt.textContent = '🟠 TrueMoney Wallet';
+                bankSelect.appendChild(opt);
+            }
+            bankSelect.value = 'TrueMoney Wallet';
+        } else {
+            if (bankSelect.value === 'TrueMoney Wallet') bankSelect.value = '';
+        }
+    }
+
+    // Update Placeholders
+    const senderParams = mode === 'truemoney' ? ['ชื่อผู้โอน / เบอร์โทร', 'เบอร์โทรผู้โอน'] : ['ชื่อผู้โอน', 'ชื่อผู้โอน'];
+    const receiverParams = mode === 'truemoney' ? ['ชื่อผู้รับ / เบอร์โทร', 'เบอร์โทรผู้รับ'] : ['ชื่อผู้รับ', 'ชื่อผู้รับ'];
+
+    const senderInput = document.getElementById(prefix + '-sender');
+    if (senderInput) senderInput.placeholder = senderParams[0];
+
+    const receiverInput = document.getElementById(prefix + '-receiver');
+    if (receiverInput) receiverInput.placeholder = receiverParams[0];
+
+    console.log(`Switched to ${mode} mode (${prefix})`);
+};
