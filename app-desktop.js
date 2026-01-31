@@ -1161,6 +1161,18 @@ function resetUpload() {
     dFile.value = '';
     mFile.value = '';
 
+    // Clear Manual Inputs as well
+    if (typeof clearManualImage === 'function') {
+        clearManualImage('d');
+        clearManualImage('m');
+    }
+
+    // Reset Mode to General
+    if (typeof setSlipMode === 'function') {
+        setSlipMode('general', 'd');
+        setSlipMode('general', 'm');
+    }
+
     // Desktop Reset
     dDropzone.classList.remove('hidden');
     dPreview.classList.remove('show');
@@ -2532,4 +2544,20 @@ window.handleManualFile = function (input, prefix) {
         }
         reader.readAsDataURL(file);
     }
+};
+
+// Clear Manual Image
+window.clearManualImage = function (prefix) {
+    currentImage = null;
+    const input = document.getElementById(prefix + '-manual-file');
+    if (input) input.value = '';
+
+    // Reset Previews
+    const img = document.getElementById(prefix + '-manual-preview');
+    const placeholder = document.getElementById(prefix + '-manual-placeholder');
+    const fullContainer = document.getElementById(prefix + '-manual-full-preview-container');
+
+    if (img) { img.src = ''; img.style.display = 'none'; }
+    if (placeholder) { placeholder.style.display = 'block'; }
+    if (fullContainer) { fullContainer.style.display = 'none'; }
 };

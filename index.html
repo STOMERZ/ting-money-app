@@ -2125,9 +2125,13 @@
                                 <div style="flex: 1;">
                                     <input type="file" id="d-manual-file" accept="image/*" hidden
                                         onchange="handleManualFile(this, 'd')">
-                                    <button class="btn btn-sm"
-                                        onclick="document.getElementById('d-manual-file').click()"
-                                        style="background: white; border: 1px solid #d1d5db; color: #374151;">เลือกรูป...</button>
+                                    <div style="display: flex; gap: 5px;">
+                                        <button class="btn btn-sm"
+                                            onclick="document.getElementById('d-manual-file').click()"
+                                            style="background: white; border: 1px solid #d1d5db; color: #374151; flex: 1;">เลือกรูป...</button>
+                                        <button class="btn btn-sm" onclick="resetUpload()"
+                                            style="background: #fee2e2; border: 1px solid #fecaca; color: #ef4444;">ยกเลิก</button>
+                                    </div>
                                     <div style="font-size: 0.75rem; color: #9ca3af; margin-top: 4px;">
                                         *รูปจะถูกบันทึกไปกับรายการ</div>
                                 </div>
@@ -2739,8 +2743,13 @@
                             <div style="flex: 1;">
                                 <input type="file" id="m-manual-file" accept="image/*" hidden
                                     onchange="handleManualFile(this, 'm')">
-                                <button class="btn btn-sm" onclick="document.getElementById('m-manual-file').click()"
-                                    style="width: 100%; background: white; border: 1px solid #d1d5db; color: #374151; font-size: 0.8rem; padding: 6px;">เลือกรูป...</button>
+                                <div style="display: flex; gap: 5px;">
+                                    <button class="btn btn-sm"
+                                        onclick="document.getElementById('m-manual-file').click()"
+                                        style="width: 100%; background: white; border: 1px solid #d1d5db; color: #374151; font-size: 0.8rem; padding: 6px; flex: 1;">เลือกรูป...</button>
+                                    <button class="btn btn-sm" onclick="resetUpload()"
+                                        style="background: #fee2e2; border: 1px solid #fecaca; color: #ef4444; font-size: 0.8rem; padding: 6px;">ยกเลิก</button>
+                                </div>
                             </div>
                         </div>
                         <!-- Full Preview for Mobile -->
